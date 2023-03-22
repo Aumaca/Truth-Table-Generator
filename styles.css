@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@500&family=Poppins:ital@1&display=swap');
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+.title {
+    font-family: 'Comfortaa', cursive;
+}
+
+body {
+    background: #ad5389;
+    /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #3c1053, #ad5389);
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #3c1053, #ad5389);
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+/* FORM */
+form input {
+    border-radius: 10px;
+    border: none;
+    padding: 20px;
+    width: 100%;
+    outline: none;
+    color: grey;
+    font-family: monospace;
+}
+
+form input:focus {
+    outline: 2px solid black;
+}
+
+form button {
+    font-family: 'Comfortaa', cursive;
+    background-color: transparent;
+    border-radius: 10px;
+    color: white;
+    border: 2px solid white;
+    transition: 0.3s ease-in-out;
+    transition: 0.1s transform ease-in-out;
+    width: min-content;
+    padding: 10px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+form button:hover {
+    color: black;
+    background-color: white;
+}
+
+form button:active {
+    transform: scale(0.95);
+}
+
+/* TABLE */
+.truth-table {
+    display: flex;
+    justify-content: center;
+}
+
+table {
+    background-color: white;
+    color: black;
+    border-radius: 10px;
+}
+
+thead th {
+    border-bottom: 1px solid grey;
+}
+
+tbody tr:not(:last-child) {
+    border-bottom: 1px solid rgb(185, 185, 185);
+}
+
+th,
+td {
+    font-family: 'Comfortaa', cursive;
+    padding: 10px 20px;
+}
+
+/* FOOTER */
+footer {
+    position: absolute;
+    width: 100vw;
+    text-align: center;
+    bottom: 0;
+    background-color: black;
+}

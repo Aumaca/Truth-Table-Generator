@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Style -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Boostrap's CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+</head>
+
+<body class="text-white">
+    <div class="container col-xl-5 d-flex flex-column gap-5 mt-5">
+        <!-- Title -->
+        <h1 class="title text-center">Truth Table Generator</h1>
+
+        <!-- Input -->
+        <form onsubmit="handleSubmit(event)">
+            <div class="d-flex flex-column align-items-center align-items-lg-stretch flex-lg-row gap-2">
+                <input id="expression" class="mb-3 mb-lg-0" type="text" placeholder="Your logic expression here">
+                <button type="submit">Generate</button>
+            </div>
+        </form>
+
+        <div class="truth-table mb-4">
+            <table>
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Age</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>John</td>
+                        <td>Doe</td>
+                        <td>25</td>
+                    </tr>
+                    <tr>
+                        <td>Jane</td>
+                        <td>Smith</td>
+                        <td>30</td>
+                    </tr>
+                    <tr>
+                        <td>Bob</td>
+                        <td>Johnson</td>
+                        <td>40</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Instructions -->
+        <div class="accordion" id="accordionExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Instructions
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+                    data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        Write that way! <strong>!A -> B</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="script.js"></script>
+    <!-- Bootstrap's JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+</body>
+
+<footer>
+    <p class="p-2 m-0">Made with ❤️ by Carlos Aumaca</p>
+</footer>
+
+</html>
