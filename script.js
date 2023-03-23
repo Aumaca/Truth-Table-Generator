@@ -15,7 +15,7 @@ function run() {
     console.log(letters);
     console.log(notLetters);
     console.log(parenthesisExp);
-    console.log(createRows(expression, letters));
+    createRows(letters, notLetters);
 }
 /**
  * Returns false if expression has invalid character or invalid '()'.
@@ -104,7 +104,7 @@ function changeActualBool(actualBool) {
     }
     return true;
 }
-function createRows(expression, letters) {
+function createRows(letters, notLetters) {
     const cases = Math.pow(2, letters.length);
     let allCases = []; // To see about it after
     // For each letter
@@ -136,6 +136,30 @@ function createRows(expression, letters) {
             }
             allCases.push(actual);
         }
+    }
+    // For each not letter
+    for (let i = 0; i < notLetters.length; i++) { // For letter in notLetters
+        let actual = [notLetters[i], []]; // Set actual array to be pushed to allCases
+        let letterIndexInAllCases = 0; // Take first number that is index of array containing all values of the letter
+        // Return the index of a letter in allCases to access his boolean values
+        for (let y = 0; y < allCases.length; y++) {
+            if (allCases[y][0] === notLetters[i]) {
+                letterIndexInAllCases = y;
+                break;
+            }
+        }
+        console.log(letterIndexInAllCases);
+        // For booleans values in given letter
+        for (let x = 0; x < allCases[letterIndexInAllCases][1].length; x++) {
+            let boolValue = allCases[letterIndexInAllCases][1][x];
+            if (boolValue === true) {
+                actual[1].push(false);
+            }
+            else {
+                actual[1].push(true);
+            }
+        }
+        allCases.push(actual);
     }
     console.log(allCases);
 }

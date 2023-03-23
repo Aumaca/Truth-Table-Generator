@@ -17,7 +17,7 @@ function run(): void {
     console.log(letters);
     console.log(notLetters);
     console.log(parenthesisExp);
-    console.log(createRows(letters));
+    createRows(letters, notLetters);
 }
 
 
@@ -115,9 +115,10 @@ function changeActualBool(actualBool: boolean): boolean {
 }
 
 
-function createRows(letters: string[]) {
+function createRows(letters: string[], notLetters: string[]) {
     const cases: number = 2 ** letters.length;
-    let allCases: [string, any[]][] = [];
+    let allCases: [string, any[]][] = []; // To see about it after
+
     // For each letter
     for (let i = 0; i < letters.length; i++) {
         let actual: [string, boolean[]] = [letters[i], []];
@@ -146,5 +147,33 @@ function createRows(letters: string[]) {
             allCases.push(actual);
         }
     }
+
+    // For each not letter
+    for (let i = 0; i < notLetters.length; i++) { // For letter in notLetters
+        let actual: [string, boolean[]] = [notLetters[i], []]; // Set actual array to be pushed to allCases
+        let letterIndexInAllCases: number = 0; // Take first number that is index of array containing all values of the letter
+
+        // Return the index of a letter in allCases to access his boolean values
+        for (let y = 0; y < allCases.length; y++) {
+            if (allCases[y][0] === notLetters[i]) {
+                letterIndexInAllCases = y;
+                break;
+            }
+        }
+
+        console.log(letterIndexInAllCases);
+
+        // For booleans values in given letter
+        for (let x = 0; x < allCases[letterIndexInAllCases][1].length; x++) {
+            let boolValue = allCases[letterIndexInAllCases][1][x];
+            if (boolValue === true) {
+                actual[1].push(false);
+            } else {
+                actual[1].push(true);
+            }
+        }
+        allCases.push(actual);
+    }
+
     console.log(allCases);
 }
