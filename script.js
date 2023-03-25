@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const form = document.querySelector("form");
 const expressionInput = document.getElementById("expression");
 const handleSubmit = (evt) => {
@@ -12,9 +14,9 @@ function run() {
     const letters = takeLetters(expression);
     const notLetters = takeNotLetters(expression);
     const parenthesisExp = takeParenthesisExpressions(expression);
-    console.log(letters);
-    console.log(notLetters);
-    console.log(parenthesisExp);
+    console.log("Letters: " + letters);
+    console.log("Not Letters: " + notLetters);
+    console.log("Expressions in Parenthesis: " + parenthesisExp);
     createRows(letters, notLetters);
 }
 /**
@@ -137,27 +139,24 @@ function createRows(letters, notLetters) {
             allCases.push(actual);
         }
     }
-    // For each not letter
+    // For each not letter:
+    // 1 - To each letter in not letter, first is necessary to take the index in which the variable and his values are in allCases.
+    // 2 - For each boolean value, we will invert the boolean value and push to actual
     for (let i = 0; i < notLetters.length; i++) { // For letter in notLetters
         let actual = [notLetters[i], []]; // Set actual array to be pushed to allCases
-        let letterIndexInAllCases = 0; // Take first number that is index of array containing all values of the letter
+        let letterIndex = 0; // Take first number that is index of array containing all values of the letter
         // Return the index of a letter in allCases to access his boolean values
-        for (let y = 0; y < allCases.length; y++) {
-            if (allCases[y][0] === notLetters[i]) {
-                letterIndexInAllCases = y;
+        let letter = notLetters[i].replace('!', '');
+        for (let i = 0; i < allCases.length; i++) {
+            if (allCases[i][0] === letter) {
+                letterIndex = i;
                 break;
             }
         }
-        console.log(letterIndexInAllCases);
         // For booleans values in given letter
-        for (let x = 0; x < allCases[letterIndexInAllCases][1].length; x++) {
-            let boolValue = allCases[letterIndexInAllCases][1][x];
-            if (boolValue === true) {
-                actual[1].push(false);
-            }
-            else {
-                actual[1].push(true);
-            }
+        for (let i = 0; i < cases; i++) {
+            let boolValue = allCases[letterIndex][1][i];
+            boolValue === true ? actual[1].push(false) : actual[1].push(true);
         }
         allCases.push(actual);
     }

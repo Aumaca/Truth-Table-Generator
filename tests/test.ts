@@ -1,34 +1,22 @@
-export { }; // To prevent "Duplicate function implementation" message.
-
-const form = document.querySelector("form") as HTMLFormElement;
-const expressionInput = document.getElementById("expression") as HTMLInputElement;
-
-const handleSubmit = (evt: Event) => {
-    evt.preventDefault();
-    run();
-};
-
-function run(): void {
-    const expression: string = expressionInput.value;
-    if (!checkExpression(expression)) {
-        return window.alert("erro");
-    }
-    const letters: string[] = takeLetters(expression);
-    const notLetters: string[] = takeNotLetters(expression);
-    const parenthesisExp: string[] = takeParenthesisExpressions(expression);
-    console.log("Letters: " + letters);
-    console.log("Not Letters: " + notLetters);
-    console.log("Expressions in Parenthesis: " + parenthesisExp);
-    createRows(letters, notLetters);
+const expression = "A v B v !A v !B";
+if (!checkExpression()) {
+    throw new Error("Error");
 }
+const letters: string[] = takeLetters();
+const notLetters: string[] = takeNotLetters();
+const parenthesisExp: string[] = takeParenthesisExpressions();
+console.log("Letters: " + letters);
+console.log("Not Letters: " + notLetters);
+console.log("Expressions in Parenthesis: " + parenthesisExp);
+createRows();
 
 
 /**
  * Returns false if expression has invalid character or invalid '()'.
  */
-function checkExpression(expression: string): boolean {
-    const openParenthesis: number = Array.from(expression).filter(value => value == '(').length;
-    const closeParenthesis: number = Array.from(expression).filter(value => value == '(').length;
+function checkExpression(): boolean {
+    const openParenthesis = Array.from(expression).filter(value => value == '(').length;
+    const closeParenthesis = Array.from(expression).filter(value => value == '(').length;
     if (openParenthesis !== closeParenthesis) {
         return false;
     }
@@ -41,7 +29,7 @@ function checkExpression(expression: string): boolean {
 /**
  * Returns array with unique alphabets characters in found order.
  */
-function takeLetters(expression: string): string[] {
+function takeLetters(): string[] {
     let letters: string[] = [];
     for (let i = 0; i < expression.length; i++) {
         if (expression[i].match(/[A-Z]/)) {
@@ -56,7 +44,7 @@ function takeLetters(expression: string): string[] {
 /**
  * Returns array with unique alphabets characters with "!" in found order.
  */
-function takeNotLetters(expression: string) {
+function takeNotLetters() {
     let notLetters: string[] = [];
     for (let i = 0; i < expression.length; i++) {
         if (expression[i] === "!" && expression[i + 1].match(/[A-Z]/)) {
@@ -71,7 +59,7 @@ function takeNotLetters(expression: string) {
     return notLetters;
 };
 
-function takeIndexs(expression: string, char: string): number[] {
+function takeIndexs(char: string): number[] {
     let indexs: number[] = [];
     for (let i = 0; i < expression.length; i++) {
         expression[i] === '(' ? indexs.push(i) : '';
@@ -79,8 +67,8 @@ function takeIndexs(expression: string, char: string): number[] {
     return indexs;
 }
 
-function takeParenthesisExpressions(expression: string) {
-    const openParenthesisIndexs: number[] = takeIndexs(expression, '(').reverse();
+function takeParenthesisExpressions() {
+    const openParenthesisIndexs: number[] = takeIndexs('(').reverse();
     let parenthesisExpressions: string[] = [];
     let actualParenthesis: string = '';
     let actualNotParenthesis: string = '';
@@ -117,9 +105,9 @@ function changeActualBool(actualBool: boolean): boolean {
 }
 
 
-function createRows(letters: string[], notLetters: string[]) {
+function createRows() {
     const cases: number = 2 ** letters.length;
-    let allCases: [string, any[]][] = []; // To see about it after
+    let allCases = []; // To see about it after
 
     // For each letter
     for (let i = 0; i < letters.length; i++) {
@@ -160,7 +148,7 @@ function createRows(letters: string[], notLetters: string[]) {
         // Return the index of a letter in allCases to access his boolean values
         let letter: string = notLetters[i].replace('!', '');
         for (let i = 0; i < allCases.length; i++) {
-
+            
             if (allCases[i][0] === letter) {
                 letterIndex = i;
                 break;
@@ -174,6 +162,5 @@ function createRows(letters: string[], notLetters: string[]) {
         }
         allCases.push(actual);
     }
-
     console.log(allCases);
 }
