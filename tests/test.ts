@@ -211,18 +211,42 @@ function createRows() {
 
     // For each operation
     for (let i = 0; i < allOperations.length; i++) {
-        let actual: [string, boolean[]] = [allOperations[i], []];
-        let operation: string = allOperations[i];
-        let operationArray: string[] = splitOperation(operation);
+        let operation: string = allOperations[i]; // Take operation
+        let actual: [string, boolean[]] = [operation, []]; // Set array to the operation
+        let operationArray: string[] = splitOperation(operation); // Split operation to get single values
+
         // To get values and make operation
-        for (let i = 0; i < allOperations.length; i++) {
-            let firstVar: string = operationArray[0]; // A
-            let operator: string = operationArray[1]; // v
-            let secondVar: string = operationArray[2]; // B
-            let firstVarValues: boolean[] = getValuesAllCases(firstVar, allCases);
-            let secondVarValues: boolean[] = getValuesAllCases(secondVar, allCases);
+        let firstVar: string = operationArray[0]; // A
+        console.log('firstvar: ' + firstVar);
+        let operator: string = operationArray[1]; // v
+        console.log('operator: ' + operator);
+        let secondVar: string = operationArray[2]; // B
+        console.log('secondVar: ' + secondVar);
+        let firstVarValues: boolean[] = getValuesAllCases(firstVar, allCases);
+        let secondVarValues: boolean[] = getValuesAllCases(secondVar, allCases);
+
+        // Generate conditionals results for each case and store to actual[1]
+        for (let i = 0; i < cases; i++) {
+            let actualValueCase: boolean = false;
+            if (operator === 'v') {
+                if (firstVarValues[i] || secondVarValues[i]) {
+                    actualValueCase = true;
+                } else {
+                    actualValueCase = false;
+                }
+            }
+            if (operator === '^') {
+                if (firstVarValues[i] && secondVarValues[i]) {
+                    actualValueCase = true;
+                } else {
+                    actualValueCase = false;
+                }
+            }
+            actual[1].push(actualValueCase);
         }
+        allCases.push(actual);
     }
+    console.log(allCases);
     return allCases;
 }
 

@@ -92,7 +92,7 @@ function takeParenthesisExpressions() {
     let actualParenthesis = '';
     let actualNotParenthesis = '';
     for (let x of openParenthesisIndexs) {
-        for (let i = x; ; i++) {
+        for (let i = x;; i++) {
             if (expression[i - 1] === '!' && expression[i] === '(') {
                 actualNotParenthesis += "!";
             }
@@ -192,18 +192,42 @@ function createRows() {
     }
     // For each operation
     for (let i = 0; i < allOperations.length; i++) {
-        let actual = [allOperations[i], []];
-        let operation = allOperations[i];
-        let operationArray = splitOperation(operation);
+        let operation = allOperations[i]; // Take operation
+        let actual = [operation, []]; // Set array to the operation
+        let operationArray = splitOperation(operation); // Split operation to get single values
         // To get values and make operation
-        for (let i = 0; i < allOperations.length; i++) {
-            let firstVar = operationArray[0]; // A
-            let operator = operationArray[1]; // v
-            let secondVar = operationArray[2]; // B
-            let firstVarValues = getValuesAllCases(firstVar, allCases);
-            let secondVarValues = getValuesAllCases(secondVar, allCases);
+        let firstVar = operationArray[0]; // A
+        console.log('firstvar: ' + firstVar);
+        let operator = operationArray[1]; // v
+        console.log('operator: ' + operator);
+        let secondVar = operationArray[2]; // B
+        console.log('secondVar: ' + secondVar);
+        let firstVarValues = getValuesAllCases(firstVar, allCases);
+        let secondVarValues = getValuesAllCases(secondVar, allCases);
+        // Generate conditionals results for each case and store to actual[1]
+        for (let i = 0; i < cases; i++) {
+            let actualValueCase = false;
+            if (operator === 'v') {
+                if (firstVarValues[i] || secondVarValues[i]) {
+                    actualValueCase = true;
+                }
+                else {
+                    actualValueCase = false;
+                }
+            }
+            if (operator === '^') {
+                if (firstVarValues[i] && secondVarValues[i]) {
+                    actualValueCase = true;
+                }
+                else {
+                    actualValueCase = false;
+                }
+            }
+            actual[1].push(actualValueCase);
         }
+        allCases.push(actual);
     }
+    console.log(allCases);
     return allCases;
 }
 /**
