@@ -1,25 +1,48 @@
-const expression = "A v B v !A v !B";
+const expression = "A v !B v A";
 if (!checkExpression()) {
     throw new Error("Error");
 }
 const letters = takeLetters();
 const notLetters = takeNotLetters();
 const parenthesisExp = takeParenthesisExpressions();
-console.log("Letters: " + letters);
-console.log("Not Letters: " + notLetters);
-console.log("Expressions in Parenthesis: " + parenthesisExp);
+const allOperations = takeOperations();
+console.log("Letters: ");
+console.log(letters);
+console.log("Not Letters: ");
+console.log(notLetters);
+console.log("Expressions in Parenthesis: ");
+console.log(parenthesisExp);
+console.log("All operations: ");
+console.log(allOperations);
 createRows();
 /**
  * Returns false if expression has invalid character or invalid '()'.
  */
 function checkExpression() {
+    const expWithoutSpace = (expression.replace(/\s/g, '')).split('');
     const openParenthesis = Array.from(expression).filter(value => value == '(').length;
-    const closeParenthesis = Array.from(expression).filter(value => value == '(').length;
+    const closeParenthesis = Array.from(expression).filter(value => value == ')').length;
     if (openParenthesis !== closeParenthesis) {
         return false;
     }
-    if (!expression.match(/^[A-Zv^!()=><]|xor|->|=>$/g)) {
+    /**
+     * if (!expression.match(/^[A-Zv^!()=><]|xor|->|=>$/g)) {
         return false;
+        }
+     */
+    for (let i = 0; i < expWithoutSpace.length; i++) {
+        // If there's 2 logical operators in sequence (v^ or ^v or vv)
+        if (expWithoutSpace[i].match(/[v^]/g) && expWithoutSpace[i + 1] && expWithoutSpace[i + 1].match(/[v^]/g)) {
+            return false;
+        }
+        // If there's 2 variables in sequence (AB v B)
+        if (expWithoutSpace[i].match(/[A-Z]/g) && expWithoutSpace[i + 1] && expWithoutSpace[i + 1].match(/[A-Z]/g)) {
+            return false;
+        }
+        // If there is an opening and closing parenthesis after (A v ())
+        if (expWithoutSpace[i] === '(' && expWithoutSpace[i + 1] && expWithoutSpace[i + 1] === ')') {
+            return false;
+        }
     }
     return true;
 }
@@ -30,7 +53,7 @@ function takeLetters() {
     let letters = [];
     for (let i = 0; i < expression.length; i++) {
         if (expression[i].match(/[A-Z]/)) {
-            if (!letters.includes(expression[i]) && expression[i] !== 'v') {
+            if (!letters.includes(expression[i]) && !expression[i].match(/[v^]/g)) {
                 letters.push(expression[i]);
             }
         }
@@ -44,7 +67,7 @@ function takeLetters() {
 function takeNotLetters() {
     let notLetters = [];
     for (let i = 0; i < expression.length; i++) {
-        if (expression[i] === "!" && expression[i + 1].match(/[A-Z]/)) {
+        if (expression[i] === "!" && expression[i + 1] && expression[i + 1].match(/[A-Z]/)) {
             let actual = '';
             actual += expression[i];
             actual += expression[i + 1];
@@ -59,7 +82,7 @@ function takeNotLetters() {
 function takeIndexs(char) {
     let indexs = [];
     for (let i = 0; i < expression.length; i++) {
-        expression[i] === '(' ? indexs.push(i) : '';
+        expression[i] === char ? indexs.push(i) : '';
     }
     return indexs;
 }
@@ -69,7 +92,7 @@ function takeParenthesisExpressions() {
     let actualParenthesis = '';
     let actualNotParenthesis = '';
     for (let x of openParenthesisIndexs) {
-        for (let i = x;; i++) {
+        for (let i = x; ; i++) {
             if (expression[i - 1] === '!' && expression[i] === '(') {
                 actualNotParenthesis += "!";
             }
@@ -90,6 +113,24 @@ function takeParenthesisExpressions() {
     }
     return parenthesisExpressions;
 }
+function takeOperations() {
+    const expWithoutSpace = expression.split(' ');
+    let allOperations = [];
+    let actual = '';
+    for (let i = 0; i < expWithoutSpace.length; i++) {
+        // If actual is empty and the first element to be pushed is a logic operator,
+        // then push to actual the previous variable (if this not contain parenthesis)
+        if (expWithoutSpace[i].match(/[v^]/g) && !expWithoutSpace[i - 1].match(/[()]/g) && actual.length === 0) {
+            actual += expWithoutSpace[i - 1];
+        }
+        actual += expWithoutSpace[i];
+        if (expWithoutSpace[i - 1] && expWithoutSpace[i - 1].match(/[v^]/g)) {
+            allOperations.push(actual);
+            actual = '';
+        }
+    }
+    return allOperations;
+}
 function changeActualBool(actualBool) {
     if (actualBool === true) {
         return false;
@@ -98,7 +139,7 @@ function changeActualBool(actualBool) {
 }
 function createRows() {
     const cases = Math.pow(2, letters.length);
-    let allCases = []; // To see about it after
+    let allCases = [];
     // For each letter
     for (let i = 0; i < letters.length; i++) {
         let actual = [letters[i], []];
@@ -112,7 +153,6 @@ function createRows() {
                     actual[1].push(false);
                 }
             }
-            allCases.push(actual);
         }
         else {
             const maxTrack = (Math.pow(2, (i + 1))) / 2;
@@ -126,8 +166,8 @@ function createRows() {
                 actualTrack++;
                 actual[1].push(actualBool);
             }
-            allCases.push(actual);
         }
+        allCases.push(actual);
     }
     // For each not letter:
     // 1 - To each letter in not letter, first is necessary to take the index in which the variable and his values are in allCases.
@@ -150,6 +190,49 @@ function createRows() {
         }
         allCases.push(actual);
     }
-    console.log(allCases);
+    // For each operation
+    for (let i = 0; i < allOperations.length; i++) {
+        let actual = [allOperations[i], []];
+        let operation = allOperations[i];
+        let operationArray = splitOperation(operation);
+        // To get values and make operation
+        for (let i = 0; i < allOperations.length; i++) {
+            let firstVar = operationArray[0]; // A
+            let operator = operationArray[1]; // v
+            let secondVar = operationArray[2]; // B
+            let firstVarValues = getValuesAllCases(firstVar, allCases);
+            let secondVarValues = getValuesAllCases(secondVar, allCases);
+        }
+    }
+    return allCases;
+}
+/**
+ *
+ * @param string - String with operation
+ * @returns An array containing each value separately
+ */
+function splitOperation(operation) {
+    let operationArray = [];
+    let actualToSplit = '';
+    // To split values
+    for (let i = 0; i < operation.length; i++) {
+        actualToSplit += operation[i];
+        if (operation[i] === '!') {
+            continue;
+        }
+        operationArray.push(actualToSplit);
+        actualToSplit = '';
+    }
+    return operationArray;
+}
+function getValuesAllCases(variable, allCases) {
+    let index = 0;
+    for (let i = 0; i < allCases.length; i++) {
+        if (allCases[i][0] === variable) {
+            index = i;
+            break;
+        }
+    }
+    return allCases[index][1];
 }
 //# sourceMappingURL=test.js.map
