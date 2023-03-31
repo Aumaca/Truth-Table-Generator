@@ -1,35 +1,34 @@
-const expression = "A v !B v A";
+const expression = "A ^ B v (A v B)";
+/**
+ * --- Problem: !(A ^ B)
+ * - The algorithm is trying to make an unsuccessful operation with !(A & B).
+ * - parenthesesExp has the correct order.
+ * - resolution: exclude in allOperations values that exist in parenthesesExp,
+ * and then add the values of parenthesesExp to the beggining of the allOperations array.
+ */
 if (!checkExpression()) {
     throw new Error("Error");
 }
 const letters = takeLetters();
 const notLetters = takeNotLetters();
-const parenthesisExp = takeParenthesisExpressions();
+const parenthesesExp = takeParenthesesExpressions();
 const allOperations = takeOperations();
 console.log("Letters: ");
 console.log(letters);
 console.log("Not Letters: ");
 console.log(notLetters);
-console.log("Expressions in Parenthesis: ");
-console.log(parenthesisExp);
+console.log("Expressions in Parentheses: ");
+console.log(parenthesesExp);
 console.log("All operations: ");
 console.log(allOperations);
 createRows();
-/**
- * Returns false if expression has invalid character or invalid '()'.
- */
 function checkExpression() {
     const expWithoutSpace = (expression.replace(/\s/g, '')).split('');
-    const openParenthesis = Array.from(expression).filter(value => value == '(').length;
-    const closeParenthesis = Array.from(expression).filter(value => value == ')').length;
-    if (openParenthesis !== closeParenthesis) {
+    const openParentheses = Array.from(expression).filter(value => value == '(').length;
+    const closeParentheses = Array.from(expression).filter(value => value == ')').length;
+    if (openParentheses !== closeParentheses) {
         return false;
     }
-    /**
-     * if (!expression.match(/^[A-Zv^!()=><]|xor|->|=>$/g)) {
-        return false;
-        }
-     */
     for (let i = 0; i < expWithoutSpace.length; i++) {
         // If there's 2 logical operators in sequence (v^ or ^v or vv)
         if (expWithoutSpace[i].match(/[v^]/g) && expWithoutSpace[i + 1] && expWithoutSpace[i + 1].match(/[v^]/g)) {
@@ -39,7 +38,7 @@ function checkExpression() {
         if (expWithoutSpace[i].match(/[A-Z]/g) && expWithoutSpace[i + 1] && expWithoutSpace[i + 1].match(/[A-Z]/g)) {
             return false;
         }
-        // If there is an opening and closing parenthesis after (A v ())
+        // If there is an opening and closing parentheses after (A v ())
         if (expWithoutSpace[i] === '(' && expWithoutSpace[i + 1] && expWithoutSpace[i + 1] === ')') {
             return false;
         }
@@ -48,6 +47,10 @@ function checkExpression() {
 }
 /**
  * Returns array with unique alphabets characters in found order.
+ */
+/**
+ * Returns array of unique variables in found order.
+ * @returns {string[]} - Array of unique variables.
  */
 function takeLetters() {
     let letters = [];
@@ -62,7 +65,8 @@ function takeLetters() {
 }
 ;
 /**
- * Returns array with unique alphabets characters with "!" in found order.
+ * Returns array of unique variables with "!" before (negation).
+ * @returns {string[]} Array of not variables.
  */
 function takeNotLetters() {
     let notLetters = [];
@@ -79,6 +83,11 @@ function takeNotLetters() {
     return notLetters;
 }
 ;
+/**
+ * Returns the indexes of where the characters were found.
+ * @param {string} char - Character to be found.
+ * @returns {number[]} Array of numbers (indexes).
+ */
 function takeIndexs(char) {
     let indexs = [];
     for (let i = 0; i < expression.length; i++) {
@@ -86,44 +95,59 @@ function takeIndexs(char) {
     }
     return indexs;
 }
-function takeParenthesisExpressions() {
-    const openParenthesisIndexs = takeIndexs('(').reverse();
-    let parenthesisExpressions = [];
-    let actualParenthesis = '';
-    let actualNotParenthesis = '';
-    for (let x of openParenthesisIndexs) {
+/**
+ * Returns expressions within parentheses, from innermost to outermost.
+ * @returns {string[]} Array with expressions within parentheses.
+ */
+function takeParenthesesExpressions() {
+    const openParenthesesIndexs = takeIndexs('(').reverse();
+    let parenthesesExpressions = [];
+    let actualParentheses = '';
+    let actualNotParentheses = '';
+    for (let x of openParenthesesIndexs) {
         for (let i = x;; i++) {
             if (expression[i - 1] === '!' && expression[i] === '(') {
-                actualNotParenthesis += "!";
+                actualNotParentheses += "!";
             }
-            if (actualNotParenthesis.length > 0) {
-                actualNotParenthesis += expression[i];
+            if (actualNotParentheses.length > 0) {
+                actualNotParentheses += expression[i];
             }
-            actualParenthesis += expression[i];
+            actualParentheses += expression[i];
             if (expression[i] === ')') {
-                parenthesisExpressions.push(actualParenthesis);
-                actualParenthesis = "";
-                if (actualNotParenthesis.length > 0) {
-                    parenthesisExpressions.push(actualNotParenthesis);
-                    actualNotParenthesis = "";
+                parenthesesExpressions.push(actualParentheses);
+                actualParentheses = "";
+                if (actualNotParentheses.length > 0) {
+                    parenthesesExpressions.push(actualNotParentheses);
+                    actualNotParentheses = "";
                 }
                 break;
             }
         }
     }
-    return parenthesisExpressions;
+    return parenthesesExpressions;
 }
+/**
+ * Returns array with separated operations from expression.
+ * @returns {string[]} Array containing allOperations to be made in expression.
+ */
 function takeOperations() {
-    const expWithoutSpace = expression.split(' ');
+    const expWithoutSpace = expression.split(' '); // For some motive there is having '(A' and 'B)'????? Here's the motive of the problem
     let allOperations = [];
     let actual = '';
+    console.log(expWithoutSpace);
     for (let i = 0; i < expWithoutSpace.length; i++) {
-        // If actual is empty and the first element to be pushed is a logic operator,
-        // then push to actual the previous variable (if this not contain parenthesis)
-        if (expWithoutSpace[i].match(/[v^]/g) && !expWithoutSpace[i - 1].match(/[()]/g) && actual.length === 0) {
-            actual += expWithoutSpace[i - 1];
+        // If [i] is 'v' or '^' AND
+        // actual is empty THEN
+        // actual receive previous expression inside parentheses
+        // example: vB -> (AvB)vB
+        if (expWithoutSpace[i].match(/[v^]/g) && actual.length === 0) {
+            actual += "(" + allOperations[allOperations.length - 1] + ")";
         }
         actual += expWithoutSpace[i];
+        // If theres a previous char AND
+        // previous char is 'v' or '^' THEN
+        // push to allOperations and reset actual
+        // example: AvB
         if (expWithoutSpace[i - 1] && expWithoutSpace[i - 1].match(/[v^]/g)) {
             allOperations.push(actual);
             actual = '';
@@ -137,6 +161,18 @@ function changeActualBool(actualBool) {
     }
     return true;
 }
+/**
+ * - Calculate how many cases the truth table has.
+ * - Create allCases, array which store arrays with the
+ * first item is the variable and the second a array of
+ * boolean values.
+ * - Create the boolean values to the variables and make
+ * operations.
+ */
+/**
+ * Create rows using arrays with the variable followed by his boolean values.
+ * @returns {[string, boolean[]][]}
+ */
 function createRows() {
     const cases = Math.pow(2, letters.length);
     let allCases = [];
@@ -196,12 +232,9 @@ function createRows() {
         let actual = [operation, []]; // Set array to the operation
         let operationArray = splitOperation(operation); // Split operation to get single values
         // To get values and make operation
-        let firstVar = operationArray[0]; // A
-        console.log('firstvar: ' + firstVar);
+        let firstVar = operationArray[0]; // A or (A v B)
         let operator = operationArray[1]; // v
-        console.log('operator: ' + operator);
         let secondVar = operationArray[2]; // B
-        console.log('secondVar: ' + secondVar);
         let firstVarValues = getValuesAllCases(firstVar, allCases);
         let secondVarValues = getValuesAllCases(secondVar, allCases);
         // Generate conditionals results for each case and store to actual[1]
@@ -231,17 +264,24 @@ function createRows() {
     return allCases;
 }
 /**
- *
- * @param string - String with operation
- * @returns An array containing each value separately
+ * Returns the array containing separately the variables and operator from operation.
+ * @param {string[]} operation - String with operation.
+ * @returns {string[]} An array containing each value separately.
  */
 function splitOperation(operation) {
     let operationArray = [];
     let actualToSplit = '';
+    let isOpenParentheses = false;
     // To split values
     for (let i = 0; i < operation.length; i++) {
+        if (operation[i] === '(') {
+            isOpenParentheses = true;
+        }
+        if (operation[i] === ')') {
+            isOpenParentheses = false;
+        }
         actualToSplit += operation[i];
-        if (operation[i] === '!') {
+        if (operation[i] === '!' || isOpenParentheses === true) {
             continue;
         }
         operationArray.push(actualToSplit);
@@ -249,8 +289,17 @@ function splitOperation(operation) {
     }
     return operationArray;
 }
+/**
+ * Returns the boolean values of the given variable.
+ * @param {string} variable
+ * @param {[string, boolean[]][]} allCases
+ * @returns {boolean[]} An array of boolean values for the given variable.
+ */
 function getValuesAllCases(variable, allCases) {
     let index = 0;
+    if (variable.match(/[()]/g)) {
+        variable = variable.slice(1, -1);
+    }
     for (let i = 0; i < allCases.length; i++) {
         if (allCases[i][0] === variable) {
             index = i;
@@ -259,4 +308,25 @@ function getValuesAllCases(variable, allCases) {
     }
     return allCases[index][1];
 }
+/**
+ * Remove expressions that is inside of parenthesesExp from
+ * allOperations and then push them to the beggining of allOperations array.
+ * @param {string[]} allOperations
+ * @param {string[]} parenthesesExp
+ * @returns {string[]} allOperations array, with expressions inside parenthesesExp included in the beginning
+ */
+function filterAllOperations(allOperations, parenthesesExp) {
+    for (let x in parenthesesExp) {
+        const index = allOperations.indexOf(x);
+        if (index > -1) {
+            allOperations.splice(index, -1);
+        }
+    }
+    parenthesesExp = parenthesesExp.reverse();
+    for (let x in parenthesesExp) {
+        allOperations.unshift(x);
+    }
+    return allOperations;
+}
+filterAllOperations(allOperations, parenthesesExp);
 //# sourceMappingURL=test.js.map
