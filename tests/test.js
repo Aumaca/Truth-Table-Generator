@@ -176,12 +176,6 @@ function takeOperations() {
     }
     return allOperations;
 }
-function changeActualBool(actualBool) {
-    if (actualBool === true) {
-        return false;
-    }
-    return true;
-}
 /**
  * - Calculate how many cases the truth table has.
  * - Create truthTable, array which store arrays with the
@@ -255,6 +249,15 @@ function createRows() {
     }
     console.log(truthTable);
     return truthTable;
+    /**
+     * To invert actual boolean value for takeLetters()
+     */
+    function changeActualBool(actualBool) {
+        if (actualBool === true) {
+            return false;
+        }
+        return true;
+    }
     /**
      * Receive operation and then make all necessary steps to
      * make operation and set to truthTable array.
