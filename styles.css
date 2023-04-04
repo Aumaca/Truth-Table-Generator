@@ -57,21 +57,30 @@ form button:active {
 /* TABLE */
 .truth-table {
     display: flex;
-    justify-content: center;
 }
 
 table {
     background-color: white;
     color: black;
     border-radius: 10px;
+    text-align: center;
+    width: 100%;
 }
 
-thead th {
+thead tr th {
     border-bottom: 1px solid grey;
 }
 
 tbody tr:not(:last-child) {
     border-bottom: 1px solid rgb(185, 185, 185);
+}
+
+tbody tr {
+    transition: 0.15s ease-in-out;
+}
+
+tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.151);
 }
 
 th,
