@@ -398,15 +398,17 @@ function run(): void {
         const table = document.createElement("table");
 
         // Table's header
+        const tableHeaderElement: HTMLTableSectionElement = document.createElement("thead");
         const headerRow: HTMLTableRowElement = document.createElement("tr");
         for (let x of truthTable) {
             const labelHeader: HTMLTableCellElement = document.createElement("th");
             labelHeader.textContent = x[0]; // Variable
             headerRow.appendChild(labelHeader);
         }
+        tableHeaderElement.appendChild(headerRow);
+        table.appendChild(tableHeaderElement);
 
-        table.appendChild(headerRow);
-
+        const tableBodyElement: HTMLTableSectionElement = document.createElement("tbody");
         // Table's boolean values from expressions
         const cases: number = 2 ** letters.length;
         // Create a row for body for each case
@@ -418,9 +420,9 @@ function run(): void {
                 actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
                 bodyRow.appendChild(actualBooleanCell);
             }
-            table.appendChild(bodyRow);
+            tableBodyElement.appendChild(bodyRow);
         }
-
+        table.appendChild(tableBodyElement);
         truthTableDiv.appendChild(table);
     }
 }
