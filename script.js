@@ -170,13 +170,13 @@ function run() {
         return allOperations;
     }
     /**
-     * - Calculate how many cases the truth table has.
-     * - Create truthTable, array which store arrays with the
-     * first item being variable and the second an array of
-     * boolean values.
-     * - Create the boolean values to the variables and make
-     * operations.
-     */
+ * - Calculate how many cases the truth table has.
+ * - Create truthTable, array which store arrays with the
+ * first item is the variable and the second a array of
+ * boolean values.
+ * - Create the boolean values to the variables and make
+ * operations.
+ */
     /**
      * Create rows using arrays with the variable followed by his boolean values.
      * @returns {[string, boolean[]][]}
@@ -233,8 +233,32 @@ function run() {
             truthTable.push(actual);
         }
         // For each expression inside parenthesis
-        for (let i = 0; i < parenthesesExp.length; i++) {
-            addVariableToTruthTable(parenthesesExp[i].slice(1, -1));
+        const withoutNegation = parenthesesExp.filter(exp => exp[0] !== "!");
+        for (let i = 0; i < withoutNegation.length; i++) {
+            addVariableToTruthTable(withoutNegation[i].slice(1, -1));
+        }
+        // For each notExpression
+        const notExpressions = parenthesesExp.filter(exp => exp[0] === "!");
+        for (let i = 0; i < notExpressions.length; i++) { // For letter in notLetters
+            let actual = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
+            let expressionIndex = 0; // Take first number that is index of array containing all values of the letter
+            // Return the index of a expression in truthTable to access his boolean values
+            let expression = notExpressions[i].replace('!', '').replace("(", "").replace(")", "");
+            console.log(expression);
+            for (let i = 0; i < truthTable.length; i++) {
+                if (truthTable[i][0] === expression) {
+                    expressionIndex = i;
+                    break;
+                }
+            }
+            console.log("booleans of operation: " + truthTable[expressionIndex][0]);
+            console.log(truthTable[expressionIndex][1]);
+            // For booleans values in given letter
+            for (let i = 0; i < cases; i++) {
+                let boolValue = truthTable[expressionIndex][1][i];
+                boolValue === true ? actual[1].push(false) : actual[1].push(true);
+            }
+            truthTable.push(actual);
         }
         // For each operation
         for (let i = 0; i < allOperations.length; i++) {
@@ -346,12 +370,12 @@ function run() {
         // Table's boolean values from expressions
         const cases = Math.pow(2, letters.length);
         // Create a row for body for each case
-        for (let i = 0; i < truthTable.length; i++) {
+        for (let i = 0; i < cases; i++) {
             const bodyRow = document.createElement("tr");
             // For each variable in truth table
             for (let x of truthTable) {
                 const actualBooleanCell = document.createElement("td");
-                actualBooleanCell.textContent = (x[1][i].toString()[0]).toUpperCase();
+                actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
                 bodyRow.appendChild(actualBooleanCell);
             }
             table.appendChild(bodyRow);
