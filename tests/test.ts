@@ -16,8 +16,9 @@ const expressionNoSpace = expression.split(" ").join("").split("");
 if (!checkExpression()) {
     throw new Error("Error. The expression is invalid.");
 }
-const letters: string[] = takeLetters();
-const notLetters: string[] = takeNotLetters();
+const allLetters: string[][] = takeAllLetters();
+const letters: string[] = allLetters[0];
+const notLetters: string[] = allLetters[1];
 const parenthesesExp: string[] = takeParenthesesExpressions();
 const allOperations: string[] = takeOperations();
 console.log("Letters: ");
@@ -55,43 +56,25 @@ function checkExpression(): boolean {
     return true;
 }
 
-/* *
- * Returns array with unique alphabets characters in found order.
- */
 /**
-* Returns array of unique variables in found order.
-* @returns {string[]} - Array of unique variables.
-*/
-function takeLetters(): string[] {
+ * Return arrays of letters and notLetters respectively.
+ * @returns {string[][]}
+ */
+function takeAllLetters(): string[][] {
     let letters: string[] = [];
-    for (let i = 0; i < expressionNoSpace.length; i++) {
-        if (expressionNoSpace[i].match(/[A-Z]/)) {
-            if (!letters.includes(expressionNoSpace[i]) && !expressionNoSpace[i].match(/[v^]/g)) {
-                letters.push(expressionNoSpace[i]);
-            }
-        }
-    }
-    return letters;
-};
-
-/**
- * Returns array of unique variables with "!" before (negation).
- * @returns {string[]} Array of not variables.
- */
-function takeNotLetters(): string[] {
     let notLetters: string[] = [];
     for (let i = 0; i < expressionNoSpace.length; i++) {
+        if (expressionNoSpace[i].match(/[A-Z]/) && !letters.includes(expressionNoSpace[i])) {
+            letters.push(expressionNoSpace[i]);
+        }
         if (expressionNoSpace[i] === "!" && expressionNoSpace[i + 1] && expressionNoSpace[i + 1].match(/[A-Z]/)) {
             let actual: string = '';
-            actual += expressionNoSpace[i];
-            actual += expressionNoSpace[i + 1];
-            if (!notLetters.includes(actual)) {
-                notLetters.push(actual);
-            }
+            actual += expressionNoSpace[i] + expressionNoSpace[i + 1];
+            !notLetters.includes(actual) ? notLetters.push(actual) : '';
         }
     }
-    return notLetters;
-};
+    return [letters, notLetters];
+}
 
 /**
  * Returns the indexes of where the characters were found.
@@ -162,7 +145,7 @@ function takeOperations(): string[] {
         // To track parentheses
         expressionNoSpace[i] === "(" ? openParentheses++ : '';
         expressionNoSpace[i] === ")" ? openParentheses-- : '';
-
+        
         // To check "!"
         if (expressionNoSpace[i] === "!") {
             continue;
@@ -216,11 +199,7 @@ function createRows(): [string, boolean[]][] {
         // If first letter
         if (i === 0) {
             for (let x = 0; x < cases; x++) {
-                if (x % 2 === 0) {
-                    actual[1].push(true);
-                } else {
-                    actual[1].push(false);
-                }
+                x % 2 === 0 ? actual[1].push(true) : actual[1].push(false);
             }
         } else {
             const maxTrack: number = (2 ** (i + 1)) / 2;
@@ -254,8 +233,8 @@ function createRows(): [string, boolean[]][] {
 
         // For booleans values in given letter
         for (let i = 0; i < cases; i++) {
-            let boolValue: boolean = truthTable[letterIndex][1][i];
-            boolValue === true ? actual[1].push(false) : actual[1].push(true);
+            let boolValue: boolean = changeActualBool(truthTable[letterIndex][1][i]);
+            actual[1].push(boolValue);
         }
         truthTable.push(actual);
     }
@@ -282,8 +261,6 @@ function createRows(): [string, boolean[]][] {
             }
         }
 
-        console.log("booleans of operation: " + truthTable[expressionIndex][0]);
-        console.log(truthTable[expressionIndex][1]);
         // For booleans values in given letter
         for (let i = 0; i < cases; i++) {
             let boolValue: boolean = truthTable[expressionIndex][1][i];
@@ -301,13 +278,10 @@ function createRows(): [string, boolean[]][] {
     return truthTable;
 
     /**
-     * To invert actual boolean value for takeLetters()
+     * To invert actual boolean value for negations
      */
     function changeActualBool(actualBool: boolean): boolean {
-        if (actualBool === true) {
-            return false;
-        }
-        return true;
+        return (actualBool === true ? false : true);
     }
 
     /**
