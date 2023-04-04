@@ -4,6 +4,7 @@ const handleSubmit = (evt) => {
     run();
 };
 function run() {
+    const div = document.getElementsByClassName("truth-table");
     const expression = expressionInput.value;
     const expressionNoSpace = expression.split(" ").join("").split("");
     if (!checkExpression()) {
@@ -21,7 +22,7 @@ function run() {
     console.log(parenthesesExp);
     console.log("All operations: ");
     console.log(allOperations);
-    createRows();
+    const truthTable = createRows();
     function checkExpression() {
         const openParentheses = Array.from(expression).filter(value => value == '(').length;
         const closeParentheses = Array.from(expression).filter(value => value == ')').length;
@@ -330,6 +331,32 @@ function run() {
             }
         }
         return truthTable[index][1];
+    }
+    const truthTableDiv = document.getElementById("truth-table");
+    if (truthTableDiv) {
+        const table = document.createElement("table");
+        // Table's header
+        const headerRow = document.createElement("tr");
+        for (let x of truthTable) {
+            const labelHeader = document.createElement("th");
+            labelHeader.textContent = x[0]; // Variable
+            headerRow.appendChild(labelHeader);
+        }
+        table.appendChild(headerRow);
+        // Table's boolean values from expressions
+        const cases = Math.pow(2, letters.length);
+        // Create a row for body for each case
+        for (let i = 0; i < truthTable.length; i++) {
+            const bodyRow = document.createElement("tr");
+            // For each variable in truth table
+            for (let x of truthTable) {
+                const actualBooleanCell = document.createElement("td");
+                actualBooleanCell.textContent = (x[1][i].toString()[0]).toUpperCase();
+                bodyRow.appendChild(actualBooleanCell);
+            }
+            table.appendChild(bodyRow);
+        }
+        truthTableDiv.appendChild(table);
     }
 }
 //# sourceMappingURL=script.js.map

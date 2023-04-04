@@ -1,4 +1,4 @@
-const expression = "A ^ B ^ !B v !A";
+const expression = "A ^ B ^ !(!B v !A)";
 const expressionNoSpace = expression.split(" ").join("").split("");
 
 /**
@@ -137,8 +137,10 @@ function takeParenthesesExpressions(): string[] {
             }
         }
     }
+
     return parenthesesExpressions;
 }
+
 
 /**
  * Returns array with separated operations from expression.
@@ -165,11 +167,6 @@ function takeOperations(): string[] {
         if (expressionNoSpace[i] === "!") {
             continue;
         }
-
-        // Before || -> would push AvB, remaining ^(AvB)
-        // After  || -> would push (AvB)^(AvB)
-
-        console.log(expressionNoSpace);
 
         if (openParentheses === 0) {
             // If previous element is operator and [i] is a uppercase letter
@@ -264,9 +261,37 @@ function createRows(): [string, boolean[]][] {
     }
 
     // For each expression inside parenthesis
-    for (let i = 0; i < parenthesesExp.length; i++) {
-        addVariableToTruthTable(parenthesesExp[i].slice(1, -1))
+    const withoutNegation = parenthesesExp.filter(exp => exp[0] !== "!");
+    for (let i = 0; i < withoutNegation.length; i++) {
+        addVariableToTruthTable(withoutNegation[i].slice(1, -1));
     }
+
+    // For each notExpression
+    const notExpressions: string[] = parenthesesExp.filter(exp => exp[0] === "!");
+    for (let i = 0; i < notExpressions.length; i++) { // For letter in notLetters
+        let actual: [string, boolean[]] = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
+        let expressionIndex: number = 0; // Take first number that is index of array containing all values of the letter
+
+        // Return the index of a expression in truthTable to access his boolean values
+        let expression: string = notExpressions[i].replace('!', '').replace("(", "").replace(")", "");
+        console.log(expression);
+        for (let i = 0; i < truthTable.length; i++) {
+            if (truthTable[i][0] === expression) {
+                expressionIndex = i;
+                break;
+            }
+        }
+
+        console.log("booleans of operation: " + truthTable[expressionIndex][0]);
+        console.log(truthTable[expressionIndex][1]);
+        // For booleans values in given letter
+        for (let i = 0; i < cases; i++) {
+            let boolValue: boolean = truthTable[expressionIndex][1][i];
+            boolValue === true ? actual[1].push(false) : actual[1].push(true);
+        }
+        truthTable.push(actual);
+    }
+
 
     // For each operation
     for (let i = 0; i < allOperations.length; i++) {
@@ -332,15 +357,9 @@ function splitOperation(operation: string): string[] {
     let openParentheses: number = 0;
     // To split values
     for (let i = 0; i < operation.length; i++) {
-        if (operation[i] === '(') {
-            openParentheses++;
-        }
-        if (operation[i] === ')') {
-            openParentheses--;
-        }
-
+        operation[i] === '(' ? openParentheses++ : '';
+        operation[i] === ')' ? openParentheses-- : '';
         actual += operation[i];
-
         if (operation[i] === '!' || openParentheses > 0) {
             continue;
         }
