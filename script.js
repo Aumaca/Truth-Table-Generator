@@ -358,6 +358,9 @@ function run() {
     }
     const truthTableDiv = document.getElementById("truth-table");
     if (truthTableDiv) {
+        if (truthTableDiv.children) {
+            truthTableDiv.textContent = "";
+        }
         const table = document.createElement("table");
         // Table's header
         const tableHeaderElement = document.createElement("thead");
