@@ -204,7 +204,7 @@ function run(): void {
                 for (let x = 0; x < cases; x++) {
                     if (actualTrack == maxTrack) {
                         actualTrack = 0;
-                        actualBool = changeActualBool(actualBool);
+                        actualBool = actualBool ? false : true;
                     }
                     actualTrack++;
                     actual[1].push(actualBool);
@@ -273,20 +273,20 @@ function run(): void {
 
         // For each operation
         for (let i = 0; i < allOperations.length; i++) {
+            let operation: string = allOperations[i];
+            if (operation[0] === "(" && operation[operation.length - 1] === ")") {
+                operation = operation.slice(1, -1);
+            }
+            let inTruthTable: boolean = truthTable.some((element) => {
+                return operation === element[0];
+            });
+            if (inTruthTable) {
+                break;
+            }
             addVariableToTruthTable(allOperations[i]);
         }
         console.log(truthTable);
         return truthTable;
-
-        /**
-         * To invert actual boolean value for takeLetters()
-         */
-        function changeActualBool(actualBool: boolean): boolean {
-            if (actualBool) {
-                return false;
-            }
-            return true;
-        }
 
         /**
          * Receive operation and then make all necessary steps to
