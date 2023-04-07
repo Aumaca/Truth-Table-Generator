@@ -91,9 +91,14 @@ td {
 
 /* FOOTER */
 footer {
-    position: absolute;
+    position: fixed;
+    bottom: 0;
     width: 100vw;
     text-align: center;
-    bottom: 0;
     background-color: black;
+    height: 40px;
+}
+
+.footer-space {
+    padding-bottom: 60px;
 }
