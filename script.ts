@@ -53,7 +53,6 @@ function run(): void {
 
     /**
     * Returns array of unique variables in found order.
-    * @returns {string[]} - Array of unique variables.
     */
     function takeLetters(): string[] {
         let letters: string[] = [];
@@ -69,7 +68,6 @@ function run(): void {
 
     /**
      * Returns array of unique variables with "!" before (negation).
-     * @returns {string[]} Array of not variables.
      */
     function takeNotLetters(): string[] {
         let notLetters: string[] = [];
@@ -87,9 +85,8 @@ function run(): void {
     };
 
     /**
-     * Returns the indexes of where the characters were found.
-     * @param {string} char - Character to be found.
-     * @returns {number[]} Array of numbers (indexes).
+     * Returns indexes array of where the characters were found.
+     * @param char - Character to be found.
      */
     function takeIndexs(char: string): number[] {
         let indexs: number[] = [];
@@ -102,7 +99,6 @@ function run(): void {
 
     /**
      * Returns expressions within parentheses, from innermost to outermost.
-     * @returns {string[]} Array with expressions within parentheses.
      */
     function takeParenthesesExpressions(): string[] {
         const openParenthesesIndexs: number[] = takeIndexs('(').reverse();
@@ -120,13 +116,14 @@ function run(): void {
                 }
                 actualParentheses += expressionNoSpace[i];
                 if (expressionNoSpace[i] === ')') {
-                    parenthesesExpressions.push(actualParentheses);
-                    actualParentheses = "";
-                    if (actualNotParentheses.length > 0) {
-                        parenthesesExpressions.push(actualNotParentheses);
-                        actualNotParentheses = "";
+                    if (checkParenthesesExpression(actualParentheses)) {
+                        parenthesesExpressions.push(actualParentheses);
+                        actualParentheses = "";
+                        break;
+                    } else {
+                        actualParentheses = "";
+                        break;
                     }
-                    break;
                 }
             }
         }
@@ -135,7 +132,6 @@ function run(): void {
 
     /**
      * Returns array with separated operations from expression.
-     * @returns {string[]} Array containing allOperations to be made in expression.
      */
     function takeOperations(): string[] {
         let allOperations: string[] = [];
@@ -158,11 +154,6 @@ function run(): void {
             if (expressionNoSpace[i] === "!") {
                 continue;
             }
-
-            // Before || -> would push AvB, remaining ^(AvB)
-            // After  || -> would push (AvB)^(AvB)
-
-            console.log(expressionNoSpace);
 
             if (openParentheses === 0) {
                 // If previous element is operator and [i] is a uppercase letter
@@ -188,19 +179,8 @@ function run(): void {
         return allOperations;
     }
 
-
-    /**
- * - Calculate how many cases the truth table has.
- * - Create truthTable, array which store arrays with the
- * first item is the variable and the second a array of
- * boolean values.
- * - Create the boolean values to the variables and make 
- * operations.
- */
-
     /**
      * Create rows using arrays with the variable followed by his boolean values.
-     * @returns {[string, boolean[]][]} 
      */
     function createRows(): [string, boolean[]][] {
         const cases: number = 2 ** letters.length;
@@ -270,7 +250,6 @@ function run(): void {
 
             // Return the index of a expression in truthTable to access his boolean values
             let expression: string = notExpressions[i].replace('!', '').replace("(", "").replace(")", "");
-            console.log(expression);
             for (let i = 0; i < truthTable.length; i++) {
                 if (truthTable[i][0] === expression) {
                     expressionIndex = i;
@@ -278,8 +257,6 @@ function run(): void {
                 }
             }
 
-            console.log("booleans of operation: " + truthTable[expressionIndex][0]);
-            console.log(truthTable[expressionIndex][1]);
             // For booleans values in given letter
             for (let i = 0; i < cases; i++) {
                 let boolValue: boolean = truthTable[expressionIndex][1][i];
@@ -300,7 +277,7 @@ function run(): void {
          * To invert actual boolean value for takeLetters()
          */
         function changeActualBool(actualBool: boolean): boolean {
-            if (actualBool === true) {
+            if (actualBool) {
                 return false;
             }
             return true;
@@ -310,7 +287,6 @@ function run(): void {
          * Receive operation and then make all necessary steps to
          * make operation and set to truthTable array.
          * It's not used to process letters and notLetters.
-         * @param {string} operation - Simple operation
          */
         function addVariableToTruthTable(operation: string): void {
             let actual: [string, boolean[]] = [operation, []]; // Set array to the operation
@@ -344,8 +320,6 @@ function run(): void {
 
     /**
      * Returns the array containing separately the variables and operator from operation.
-     * @param {string[]} operation - String with operation.
-     * @returns {string[]} An array containing each value separately.
      */
     function splitOperation(operation: string): string[] {
         let operationArray: string[] = [];
@@ -374,9 +348,6 @@ function run(): void {
 
     /**
      * Returns the boolean values of the given variable.
-     * @param {string} variable 
-     * @param {[string, boolean[]][]} truthTable 
-     * @returns {boolean[]} An array of boolean values for the given variable.
      */
     function getValuesTruthTable(variable: string, truthTable: [string, boolean[]][]): boolean[] {
         let index: number = 0;
@@ -390,6 +361,17 @@ function run(): void {
             }
         }
         return truthTable[index][1];
+    }
+
+    /**
+     * Return true if expression inside parentheses isn't only a variable
+     */
+    function checkParenthesesExpression(expression: string) {
+        const slicedOperation = splitOperation(expression.slice(1, -1));
+        if (slicedOperation.length !== 3) {
+            return false;
+        }
+        return true;
     }
 
     const truthTableDiv = document.getElementById("truth-table");

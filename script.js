@@ -47,7 +47,6 @@ function run() {
     }
     /**
     * Returns array of unique variables in found order.
-    * @returns {string[]} - Array of unique variables.
     */
     function takeLetters() {
         let letters = [];
@@ -63,7 +62,6 @@ function run() {
     ;
     /**
      * Returns array of unique variables with "!" before (negation).
-     * @returns {string[]} Array of not variables.
      */
     function takeNotLetters() {
         let notLetters = [];
@@ -81,9 +79,8 @@ function run() {
     }
     ;
     /**
-     * Returns the indexes of where the characters were found.
-     * @param {string} char - Character to be found.
-     * @returns {number[]} Array of numbers (indexes).
+     * Returns indexes array of where the characters were found.
+     * @param char - Character to be found.
      */
     function takeIndexs(char) {
         let indexs = [];
@@ -94,7 +91,6 @@ function run() {
     }
     /**
      * Returns expressions within parentheses, from innermost to outermost.
-     * @returns {string[]} Array with expressions within parentheses.
      */
     function takeParenthesesExpressions() {
         const openParenthesesIndexs = takeIndexs('(').reverse();
@@ -111,13 +107,15 @@ function run() {
                 }
                 actualParentheses += expressionNoSpace[i];
                 if (expressionNoSpace[i] === ')') {
-                    parenthesesExpressions.push(actualParentheses);
-                    actualParentheses = "";
-                    if (actualNotParentheses.length > 0) {
-                        parenthesesExpressions.push(actualNotParentheses);
-                        actualNotParentheses = "";
+                    if (checkParenthesesExpression(actualParentheses)) {
+                        parenthesesExpressions.push(actualParentheses);
+                        actualParentheses = "";
+                        break;
                     }
-                    break;
+                    else {
+                        actualParentheses = "";
+                        break;
+                    }
                 }
             }
         }
@@ -125,7 +123,6 @@ function run() {
     }
     /**
      * Returns array with separated operations from expression.
-     * @returns {string[]} Array containing allOperations to be made in expression.
      */
     function takeOperations() {
         let allOperations = [];
@@ -145,9 +142,6 @@ function run() {
             if (expressionNoSpace[i] === "!") {
                 continue;
             }
-            // Before || -> would push AvB, remaining ^(AvB)
-            // After  || -> would push (AvB)^(AvB)
-            console.log(expressionNoSpace);
             if (openParentheses === 0) {
                 // If previous element is operator and [i] is a uppercase letter
                 // For simple expressions like -> A v B
@@ -170,16 +164,7 @@ function run() {
         return allOperations;
     }
     /**
- * - Calculate how many cases the truth table has.
- * - Create truthTable, array which store arrays with the
- * first item is the variable and the second a array of
- * boolean values.
- * - Create the boolean values to the variables and make
- * operations.
- */
-    /**
      * Create rows using arrays with the variable followed by his boolean values.
-     * @returns {[string, boolean[]][]}
      */
     function createRows() {
         const cases = Math.pow(2, letters.length);
@@ -244,15 +229,12 @@ function run() {
             let expressionIndex = 0; // Take first number that is index of array containing all values of the letter
             // Return the index of a expression in truthTable to access his boolean values
             let expression = notExpressions[i].replace('!', '').replace("(", "").replace(")", "");
-            console.log(expression);
             for (let i = 0; i < truthTable.length; i++) {
                 if (truthTable[i][0] === expression) {
                     expressionIndex = i;
                     break;
                 }
             }
-            console.log("booleans of operation: " + truthTable[expressionIndex][0]);
-            console.log(truthTable[expressionIndex][1]);
             // For booleans values in given letter
             for (let i = 0; i < cases; i++) {
                 let boolValue = truthTable[expressionIndex][1][i];
@@ -270,7 +252,7 @@ function run() {
          * To invert actual boolean value for takeLetters()
          */
         function changeActualBool(actualBool) {
-            if (actualBool === true) {
+            if (actualBool) {
                 return false;
             }
             return true;
@@ -279,7 +261,6 @@ function run() {
          * Receive operation and then make all necessary steps to
          * make operation and set to truthTable array.
          * It's not used to process letters and notLetters.
-         * @param {string} operation - Simple operation
          */
         function addVariableToTruthTable(operation) {
             let actual = [operation, []]; // Set array to the operation
@@ -313,8 +294,6 @@ function run() {
     }
     /**
      * Returns the array containing separately the variables and operator from operation.
-     * @param {string[]} operation - String with operation.
-     * @returns {string[]} An array containing each value separately.
      */
     function splitOperation(operation) {
         let operationArray = [];
@@ -339,9 +318,6 @@ function run() {
     }
     /**
      * Returns the boolean values of the given variable.
-     * @param {string} variable
-     * @param {[string, boolean[]][]} truthTable
-     * @returns {boolean[]} An array of boolean values for the given variable.
      */
     function getValuesTruthTable(variable, truthTable) {
         let index = 0;
@@ -355,6 +331,16 @@ function run() {
             }
         }
         return truthTable[index][1];
+    }
+    /**
+     * Return true if expression inside parentheses isn't only a variable
+     */
+    function checkParenthesesExpression(expression) {
+        const slicedOperation = splitOperation(expression.slice(1, -1));
+        if (slicedOperation.length !== 3) {
+            return false;
+        }
+        return true;
     }
     const truthTableDiv = document.getElementById("truth-table");
     if (truthTableDiv) {

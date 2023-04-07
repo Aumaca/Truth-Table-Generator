@@ -52,7 +52,6 @@ function checkExpression() {
 }
 /**
  * Return arrays of letters and notLetters respectively.
- * @returns {string[][]}
  */
 function takeAllLetters() {
     let letters = [];
@@ -70,9 +69,8 @@ function takeAllLetters() {
     return [letters, notLetters];
 }
 /**
- * Returns the indexes of where the characters were found.
- * @param {string} char - Character to be found.
- * @returns {number[]} Array of numbers (indexes).
+ * Returns indexes array of where the characters were found.
+ * @param char - Character to be found.
  */
 function takeIndexs(char) {
     let indexs = [];
@@ -83,7 +81,6 @@ function takeIndexs(char) {
 }
 /**
  * Returns expressions within parentheses, from innermost to outermost.
- * @returns {string[]} Array with expressions within parentheses.
  */
 function takeParenthesesExpressions() {
     const openParenthesesIndexs = takeIndexs('(').reverse();
@@ -100,13 +97,15 @@ function takeParenthesesExpressions() {
             }
             actualParentheses += expressionNoSpace[i];
             if (expressionNoSpace[i] === ')') {
-                parenthesesExpressions.push(actualParentheses);
-                actualParentheses = "";
-                if (actualNotParentheses.length > 0) {
-                    parenthesesExpressions.push(actualNotParentheses);
-                    actualNotParentheses = "";
+                if (checkParenthesesExpression(actualParentheses)) {
+                    parenthesesExpressions.push(actualParentheses);
+                    actualParentheses = "";
+                    break;
                 }
-                break;
+                else {
+                    actualParentheses = "";
+                    break;
+                }
             }
         }
     }
@@ -114,13 +113,11 @@ function takeParenthesesExpressions() {
 }
 /**
  * Returns array with separated operations from expression.
- * @returns {string[]} Array containing allOperations to be made in expression.
  */
 function takeOperations() {
     let allOperations = [];
     let actual = "";
     let openParentheses = 0;
-    // Example: AvB^(AvB)
     for (let i = 0; i < expressionNoSpace.length; i++) {
         // If actual is empty and [i] is a operator
         if (expressionNoSpace[i].match(/[v^]/g) && actual === "") {
@@ -156,16 +153,7 @@ function takeOperations() {
     return allOperations;
 }
 /**
- * - Calculate how many cases the truth table has.
- * - Create truthTable, array which store arrays with the
- * first item is the variable and the second a array of
- * boolean values.
- * - Create the boolean values to the variables and make
- * operations.
- */
-/**
  * Create rows using arrays with the variable followed by his boolean values.
- * @returns {[string, boolean[]][]}
  */
 function createRows() {
     const cases = Math.pow(2, letters.length);
@@ -213,7 +201,7 @@ function createRows() {
         }
         truthTable.push(actual);
     }
-    // For each expression inside parenthesis
+    // For each expression inside parentheses
     const withoutNegation = parenthesesExp.filter(exp => exp[0] !== "!");
     for (let i = 0; i < withoutNegation.length; i++) {
         addVariableToTruthTable(withoutNegation[i].slice(1, -1));
@@ -255,7 +243,6 @@ function createRows() {
      * Receive operation and then make all necessary steps to
      * make operation and set to truthTable array.
      * It's not used to process letters and notLetters.
-     * @param {string} operation - Simple operation
      */
     function addVariableToTruthTable(operation) {
         let actual = [operation, []]; // Set array to the operation
@@ -289,8 +276,6 @@ function createRows() {
 }
 /**
  * Returns the array containing separately the variables and operator from operation.
- * @param {string[]} operation - String with operation.
- * @returns {string[]} An array containing each value separately.
  */
 function splitOperation(operation) {
     let operationArray = [];
@@ -311,9 +296,6 @@ function splitOperation(operation) {
 }
 /**
  * Returns the boolean values of the given variable.
- * @param {string} variable
- * @param {[string, boolean[]][]} truthTable
- * @returns {boolean[]} An array of boolean values for the given variable.
  */
 function getValuesTruthTable(variable, truthTable) {
     let index = 0;
@@ -327,5 +309,15 @@ function getValuesTruthTable(variable, truthTable) {
         }
     }
     return truthTable[index][1];
+}
+/**
+ * Return true if expression inside parentheses isn't only a variable
+ */
+function checkParenthesesExpression(expression) {
+    const slicedOperation = splitOperation(expression.slice(1, -1));
+    if (slicedOperation.length !== 3) {
+        return false;
+    }
+    return true;
 }
 //# sourceMappingURL=test.js.map

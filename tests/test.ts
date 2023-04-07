@@ -58,7 +58,6 @@ function checkExpression(): boolean {
 
 /**
  * Return arrays of letters and notLetters respectively.
- * @returns {string[][]}
  */
 function takeAllLetters(): string[][] {
     let letters: string[] = [];
@@ -77,9 +76,8 @@ function takeAllLetters(): string[][] {
 }
 
 /**
- * Returns the indexes of where the characters were found.
- * @param {string} char - Character to be found.
- * @returns {number[]} Array of numbers (indexes).
+ * Returns indexes array of where the characters were found.
+ * @param char - Character to be found.
  */
 function takeIndexs(char: string): number[] {
     let indexs: number[] = [];
@@ -92,7 +90,6 @@ function takeIndexs(char: string): number[] {
 
 /**
  * Returns expressions within parentheses, from innermost to outermost.
- * @returns {string[]} Array with expressions within parentheses.
  */
 function takeParenthesesExpressions(): string[] {
     const openParenthesesIndexs: number[] = takeIndexs('(').reverse();
@@ -110,30 +107,28 @@ function takeParenthesesExpressions(): string[] {
             }
             actualParentheses += expressionNoSpace[i];
             if (expressionNoSpace[i] === ')') {
-                parenthesesExpressions.push(actualParentheses);
-                actualParentheses = "";
-                if (actualNotParentheses.length > 0) {
-                    parenthesesExpressions.push(actualNotParentheses);
-                    actualNotParentheses = "";
+                if (checkParenthesesExpression(actualParentheses)) {
+                    parenthesesExpressions.push(actualParentheses);
+                    actualParentheses = "";
+                    break;
+                } else {
+                    actualParentheses = "";
+                    break;
                 }
-                break;
             }
         }
     }
-
     return parenthesesExpressions;
 }
 
 
 /**
  * Returns array with separated operations from expression.
- * @returns {string[]} Array containing allOperations to be made in expression.
  */
 function takeOperations(): string[] {
     let allOperations: string[] = [];
     let actual: string = "";
     let openParentheses: number = 0;
-    // Example: AvB^(AvB)
     for (let i = 0; i < expressionNoSpace.length; i++) {
         // If actual is empty and [i] is a operator
         if (expressionNoSpace[i].match(/[v^]/g) && actual === "") {
@@ -145,7 +140,7 @@ function takeOperations(): string[] {
         // To track parentheses
         expressionNoSpace[i] === "(" ? openParentheses++ : '';
         expressionNoSpace[i] === ")" ? openParentheses-- : '';
-        
+
         // To check "!"
         if (expressionNoSpace[i] === "!") {
             continue;
@@ -175,19 +170,8 @@ function takeOperations(): string[] {
     return allOperations;
 }
 
-
-/**
- * - Calculate how many cases the truth table has.
- * - Create truthTable, array which store arrays with the
- * first item is the variable and the second a array of
- * boolean values.
- * - Create the boolean values to the variables and make 
- * operations.
- */
-
 /**
  * Create rows using arrays with the variable followed by his boolean values.
- * @returns {[string, boolean[]][]} 
  */
 function createRows(): [string, boolean[]][] {
     const cases: number = 2 ** letters.length;
@@ -239,7 +223,7 @@ function createRows(): [string, boolean[]][] {
         truthTable.push(actual);
     }
 
-    // For each expression inside parenthesis
+    // For each expression inside parentheses
     const withoutNegation = parenthesesExp.filter(exp => exp[0] !== "!");
     for (let i = 0; i < withoutNegation.length; i++) {
         addVariableToTruthTable(withoutNegation[i].slice(1, -1));
@@ -287,8 +271,7 @@ function createRows(): [string, boolean[]][] {
     /**
      * Receive operation and then make all necessary steps to
      * make operation and set to truthTable array.
-     * It's not used to process letters and notLetters.
-     * @param {string} operation - Simple operation
+     * It's not used to process letters and notLetters. 
      */
     function addVariableToTruthTable(operation: string): void {
         let actual: [string, boolean[]] = [operation, []]; // Set array to the operation
@@ -322,8 +305,6 @@ function createRows(): [string, boolean[]][] {
 
 /**
  * Returns the array containing separately the variables and operator from operation.
- * @param {string[]} operation - String with operation.
- * @returns {string[]} An array containing each value separately.
  */
 function splitOperation(operation: string): string[] {
     let operationArray: string[] = [];
@@ -346,9 +327,6 @@ function splitOperation(operation: string): string[] {
 
 /**
  * Returns the boolean values of the given variable.
- * @param {string} variable 
- * @param {[string, boolean[]][]} truthTable 
- * @returns {boolean[]} An array of boolean values for the given variable.
  */
 function getValuesTruthTable(variable: string, truthTable: [string, boolean[]][]): boolean[] {
     let index: number = 0;
@@ -362,4 +340,15 @@ function getValuesTruthTable(variable: string, truthTable: [string, boolean[]][]
         }
     }
     return truthTable[index][1];
+}
+
+/**
+ * Return true if expression inside parentheses isn't only a variable
+ */
+function checkParenthesesExpression(expression: string) {
+    const slicedOperation = splitOperation(expression.slice(1, -1));
+    if (slicedOperation.length !== 3) {
+        return false;
+    }
+    return true;
 }
