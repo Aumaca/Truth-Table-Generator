@@ -277,7 +277,11 @@ function run() {
             let operationArray = splitOperation(operation); // Split expression
             const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
             let firstVarValues = getValuesTruthTable(firstVar, truthTable);
+            console.log("looking for " + firstVar);
+            console.log(firstVarValues);
             let secondVarValues = getValuesTruthTable(secondVar, truthTable);
+            console.log("looking for " + secondVar);
+            console.log(secondVarValues);
             // Generate conditionals results for each case and store to actual[1]
             for (let i = 0; i < cases; i++) {
                 let actualValueCase = false;
@@ -322,6 +326,7 @@ function run() {
                 continue;
             }
             operationArray.push(actual);
+            console.log(actual);
             actual = '';
         }
         return operationArray;
@@ -331,7 +336,7 @@ function run() {
      */
     function getValuesTruthTable(variable, truthTable) {
         let index = 0;
-        if (variable.indexOf("(") > -1 && variable.indexOf(")") > -1) {
+        if (variable[0] === "(" && variable[variable.length - 1] === ")") {
             variable = variable.slice(1, -1);
         }
         for (let i = 0; i < truthTable.length; i++) {
