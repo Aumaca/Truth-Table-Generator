@@ -94,26 +94,21 @@ function run() {
      */
     function takeParenthesesExpressions() {
         const openParenthesesIndexs = takeIndexs('(').reverse();
+        console.log(openParenthesesIndexs);
         let parenthesesExpressions = [];
-        let actualParentheses = '';
-        let actualNotParentheses = '';
         for (let x of openParenthesesIndexs) {
+            let actual = '';
+            let openParentheses = 0;
             for (let i = x;; i++) {
-                if (expressionNoSpace[i - 1] === '!' && expressionNoSpace[i] === '(') {
-                    actualNotParentheses += "!";
+                if (expressionNoSpace[i - 1] === "!" && expressionNoSpace[i] === '(' && i === x) {
+                    actual += "!";
                 }
-                if (actualNotParentheses.length > 0) {
-                    actualNotParentheses += expressionNoSpace[i];
-                }
-                actualParentheses += expressionNoSpace[i];
+                actual += expressionNoSpace[i];
+                expressionNoSpace[i] === "(" ? openParentheses++ : '';
+                expressionNoSpace[i] === ")" ? openParentheses-- : '';
                 if (expressionNoSpace[i] === ')') {
-                    if (checkParenthesesExpression(actualParentheses)) {
-                        parenthesesExpressions.push(actualParentheses);
-                        actualParentheses = "";
-                        break;
-                    }
-                    else {
-                        actualParentheses = "";
+                    if (openParentheses === 0) {
+                        parenthesesExpressions.push(actual);
                         break;
                     }
                 }
