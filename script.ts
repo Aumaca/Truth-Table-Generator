@@ -6,8 +6,7 @@ const handleSubmit = (evt: Event) => {
 };
 
 function run(): void {
-    const div = document.getElementsByClassName("truth-table");
-    const expression: string = expressionInput.value;
+    const expression: string = expressionInput.value.replaceAll("!", "¬");
     const expressionNoSpace = expression.split(" ").join("").split("");
     if (!checkExpression()) {
         throw new Error("Error. The expression is invalid.");
@@ -15,7 +14,7 @@ function run(): void {
     const letters: string[] = takeLetters();
     const notLetters: string[] = takeNotLetters();
     const parenthesesExp: string[] = takeParenthesesExpressions();
-    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "!");
+    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬");
     const allOperations: string[] = takeOperations();
     console.log("Letters: ");
     console.log(letters);
@@ -70,14 +69,14 @@ function run(): void {
     };
 
     /**
-     * Returns array of unique variables with "!" before (negation).
+     * Returns array of unique variables with "¬" before (negation).
      */
     function takeNotLetters(): string[] {
         let notLetters: string[] = [];
         for (let i = 0; i < expressionNoSpace.length; i++) {
-            if (expressionNoSpace[i] === "!" && expressionNoSpace[i + 1] && expressionNoSpace[i + 1].match(/[A-Z]/)) {
+            if (expressionNoSpace[i] === "¬" && expressionNoSpace[i + 1] && expressionNoSpace[i + 1].match(/[A-Z]/)) {
                 let actual: string = '';
-                actual += expressionNoSpace[i];
+                actual += "¬";
                 actual += expressionNoSpace[i + 1];
                 if (!notLetters.includes(actual)) {
                     notLetters.push(actual);
@@ -111,8 +110,8 @@ function run(): void {
             let actual: string = '';
             let openParentheses: number = 0;
             for (let i = x; ; i++) {
-                if (expressionNoSpace[i - 1] === "!" && expressionNoSpace[i] === '(' && i === x) {
-                    actual += "!";
+                if (expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i] === '(' && i === x) {
+                    actual += "¬";
                 }
                 actual += expressionNoSpace[i];
                 expressionNoSpace[i] === "(" ? openParentheses++ : '';
@@ -145,8 +144,8 @@ function run(): void {
             expressionNoSpace[i] === "(" ? openParentheses++ : '';
             expressionNoSpace[i] === ")" ? openParentheses-- : '';
 
-            // To check "!" or remaining operation
-            if (expressionNoSpace[i] === "!" || (expressionNoSpace[i].match(/[v^]/g) && actual === "")) {
+            // To check "¬" or remaining operation
+            if (expressionNoSpace[i] === "¬" && actual === "") {
                 continue;
             }
 
@@ -160,7 +159,7 @@ function run(): void {
 
                 // If previous element is a exclamation mark and the pre-previous is a operator and [i] is a uppercase letter
                 // For simple expressions like -> A v B
-                if (i > 0 && expressionNoSpace[i - 2] && expressionNoSpace[i - 2].match(/[v^]/g) && expressionNoSpace[i - 1] === "!" && expressionNoSpace[i].match(/[A-Z]/g)) {
+                if (i > 0 && expressionNoSpace[i - 2] && expressionNoSpace[i - 2].match(/[v^]/g) && expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i].match(/[A-Z]/g)) {
                     allOperations.push(actual);
                     actual = "";
                 }
@@ -219,7 +218,7 @@ function run(): void {
             let letterIndex: number = 0; // Take first number that is index of array containing all values of the letter
 
             // Return the index of a letter in truthTable to access his boolean values
-            let letter: string = notLetters[i].replace('!', '');
+            let letter: string = notLetters[i].replace("¬", "");
             for (let i = 0; i < truthTable.length; i++) {
                 if (truthTable[i][0] === letter) {
                     letterIndex = i;
@@ -238,22 +237,22 @@ function run(): void {
         // For each expression inside parentheses
         for (let i = 0; i < parenthesesExp.length; i++) {
             let actualExp: string = parenthesesExp[i];
-            // Remove initial "!"
-            if (actualExp[0] === "!") {
+            // Remove initial "¬"
+            if (actualExp[0] === "¬") {
                 actualExp = actualExp.slice(1);
             }
             addVariableToTruthTable(actualExp.slice(1, -1));
         }
 
         // For each expression inside parentheses that is negated 
-        const notExpressions: string[] = parenthesesExp.filter(exp => exp[0] === "!"); // Filter only negations
+        const notExpressions: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // Filter only negations
         for (let i = 0; i < notExpressions.length; i++) {
             let actual: [string, boolean[]] = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
             let expressionIndex: number = 0; // Index of expression in truthTable
 
             // Return the index of a expression in truthTable to access his boolean values
             let expression: string = notExpressions[i];
-            expression = expression.replace(expression[0], "").slice(1, -1); // Remove "!" and parentheses
+            expression = expression.replace(expression[0], "").slice(1, -1); // Remove "¬" and parentheses
 
             for (let i = 0; i < truthTable.length; i++) {
                 if (truthTable[i][0] === expression) {
@@ -304,11 +303,7 @@ function run(): void {
             let operationArray: string[] = splitOperation(operation); // Split expression
             const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
             let firstVarValues: boolean[] = getValuesTruthTable(firstVar, truthTable);
-            console.log("looking for " + firstVar);
-            console.log(firstVarValues);
             let secondVarValues: boolean[] = getValuesTruthTable(secondVar, truthTable);
-            console.log("looking for " + secondVar);
-            console.log(secondVarValues);
             // Generate conditionals results for each case and store to actual[1]
             for (let i = 0; i < cases; i++) {
                 let actualValueCase: boolean = false;
@@ -351,11 +346,10 @@ function run(): void {
 
             actual += operation[i];
 
-            if (operation[i] === '!' || openParentheses > 0) {
+            if (operation[i] === "¬" || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actual);
-            console.log(actual);
             actual = '';
         }
         return operationArray;
@@ -383,7 +377,7 @@ function run(): void {
      * Return true if expression inside parentheses isn't only a variable
      */
     function checkParenthesesExpression(expression: string) {
-        expression[0] === "!" ? expression = expression.replace(expression[0], "") : ""; // Remove "!" if this is the first char in expression
+        expression[0] === "¬" ? expression = expression.replace(expression[0], "") : ""; // Remove "¬" if this is the first char in expression
         const slicedOperation: string[] = splitOperation(expression.slice(1, -1)); // Remove parantheses
         if (slicedOperation.length !== 3) {
             return false;
