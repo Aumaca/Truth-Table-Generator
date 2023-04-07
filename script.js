@@ -130,16 +130,12 @@ function run() {
         let openParentheses = 0;
         // Example: AvB^(AvB)
         for (let i = 0; i < expressionNoSpace.length; i++) {
-            // If actual is empty and [i] is a operator
-            if (expressionNoSpace[i].match(/[v^]/g) && actual === "") {
-                actual += "(" + allOperations[allOperations.length - 1] + ")";
-            }
             actual += expressionNoSpace[i];
             // To track parentheses
             expressionNoSpace[i] === "(" ? openParentheses++ : '';
             expressionNoSpace[i] === ")" ? openParentheses-- : '';
-            // To check "!"
-            if (expressionNoSpace[i] === "!") {
+            // To check "!" or remaining operation
+            if (expressionNoSpace[i] === "!" || (expressionNoSpace[i].match(/[v^]/g) && actual === "")) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -217,12 +213,12 @@ function run() {
             }
             truthTable.push(actual);
         }
-        // For each expression inside parenthesis
+        // For each expression inside parentheses that doesn't is negated (example: (A v B))
         const withoutNegation = parenthesesExp.filter(exp => exp[0] !== "!");
         for (let i = 0; i < withoutNegation.length; i++) {
             addVariableToTruthTable(withoutNegation[i].slice(1, -1));
         }
-        // For each notExpression
+        // For each expression inside parentheses that is negated (example: !(A v B))
         const notExpressions = parenthesesExp.filter(exp => exp[0] === "!");
         for (let i = 0; i < notExpressions.length; i++) { // For letter in notLetters
             let actual = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
@@ -263,7 +259,13 @@ function run() {
          * It's not used to process letters and notLetters.
          */
         function addVariableToTruthTable(operation) {
-            let actual = [operation, []]; // Set array to the operation
+            let operationToDisplay = operation;
+            // If first char is operator, add previous operation to string.
+            if (operation[0].match(/[v^]/g)) {
+                operationToDisplay = allOperations[allOperations.indexOf(operation) - 1] + operation;
+                operation = `${allOperations[allOperations.indexOf(operation) - 1]}${operation}`;
+            }
+            let actual = [operationToDisplay, []]; // Set array to the operation
             let operationArray = splitOperation(operation); // Split expression
             const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
             let firstVarValues = getValuesTruthTable(firstVar, truthTable);
