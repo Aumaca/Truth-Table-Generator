@@ -7,6 +7,8 @@ function run() {
     const expression = expressionInput.value.replaceAll("!", "¬");
     const expressionNoSpace = expression.split(" ").join("").split("");
     if (!checkExpression()) {
+        const truthTableDiv = document.getElementById("truth-table");
+        truthTableDiv.textContent = "";
         throw new Error("Error. The expression is invalid.");
     }
     const letters = takeLetters();
@@ -358,6 +360,8 @@ function run() {
             truthTableDiv.textContent = "";
         }
         const table = document.createElement("table");
+        table.id = "the-table";
+        table.style.opacity = '0';
         // Table's header
         const tableHeaderElement = document.createElement("thead");
         const headerRow = document.createElement("tr");
@@ -384,6 +388,9 @@ function run() {
         }
         table.appendChild(tableBodyElement);
         truthTableDiv.appendChild(table);
+        setTimeout(() => {
+            table.style.opacity = "1";
+        }, 100);
     }
 }
 //# sourceMappingURL=script.js.map

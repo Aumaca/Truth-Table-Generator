@@ -57,6 +57,7 @@ form button:active {
 /* TABLE */
 .truth-table {
     display: flex;
+    letter-spacing: 3px;
 }
 
 table {
@@ -65,6 +66,8 @@ table {
     border-radius: 10px;
     text-align: center;
     width: 100%;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
 }
 
 thead tr th {

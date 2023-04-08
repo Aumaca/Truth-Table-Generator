@@ -9,6 +9,8 @@ function run(): void {
     const expression: string = expressionInput.value.replaceAll("!", "¬");
     const expressionNoSpace = expression.split(" ").join("").split("");
     if (!checkExpression()) {
+        const truthTableDiv: HTMLElement = document.getElementById("truth-table");
+        truthTableDiv.textContent = "";
         throw new Error("Error. The expression is invalid.");
     }
     const letters: string[] = takeLetters();
@@ -385,13 +387,15 @@ function run(): void {
         return true;
     }
 
-    const truthTableDiv = document.getElementById("truth-table");
+    const truthTableDiv: HTMLElement = document.getElementById("truth-table");
 
     if (truthTableDiv) {
         if (truthTableDiv.children) {
             truthTableDiv.textContent = "";
         }
-        const table = document.createElement("table");
+        const table: HTMLTableElement = document.createElement("table");
+        table.id = "the-table";
+        table.style.opacity = '0';
 
         // Table's header
         const tableHeaderElement: HTMLTableSectionElement = document.createElement("thead");
@@ -420,5 +424,8 @@ function run(): void {
         }
         table.appendChild(tableBodyElement);
         truthTableDiv.appendChild(table);
+        setTimeout(() => {
+            table.style.opacity = "1";
+        }, 100);
     }
 }
