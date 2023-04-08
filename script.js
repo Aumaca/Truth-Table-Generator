@@ -27,6 +27,7 @@ function run() {
     console.log("All operations: ");
     console.log(allOperations);
     const truthTable = createRows();
+    console.log(truthTable);
     function checkExpression() {
         const openParentheses = Array.from(expression).filter(value => value == '(').length;
         const closeParentheses = Array.from(expression).filter(value => value == ')').length;
@@ -260,7 +261,6 @@ function run() {
             }
             addVariableToTruthTable(allOperations[i]);
         }
-        console.log(truthTable);
         return truthTable;
         /**
          * Receive operation and then make all necessary steps to
@@ -272,7 +272,7 @@ function run() {
             // If first char is operator, add previous operation to string.
             if (operation[0].match(/[v^]/g)) {
                 operationToDisplay = allOperations[allOperations.indexOf(operation) - 1] + operation;
-                operation = `${allOperations[allOperations.indexOf(operation) - 1]}${operation}`;
+                operation = "(" + allOperations[allOperations.indexOf(operation) - 1] + ")" + operation;
             }
             let actual = [operationToDisplay, []]; // Set array to the operation
             let operationArray = splitOperation(operation); // Split expression
@@ -381,7 +381,14 @@ function run() {
             // For each variable in truth table
             for (let x of truthTable) {
                 const actualBooleanCell = document.createElement("td");
+                // Convert boolean value to string and then take only the first letter to uppercase
                 actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
+                if (x[1][i]) {
+                    actualBooleanCell.className = "true";
+                }
+                else {
+                    actualBooleanCell.className = "false";
+                }
                 bodyRow.appendChild(actualBooleanCell);
             }
             tableBodyElement.appendChild(bodyRow);
