@@ -1,3 +1,16 @@
+/**
+ * 1 - Create expression with no spaces.
+ * 2 - Take single letters -> (A, B, C).
+ * 3 - Take not single letters -> (!A, !B).
+ * 4 - Take expressions inside parentheses -> (AvB)vA.
+ * 5 - Take all operations that need to be done
+ *     including the operators to make operations
+ *     in order. -> A, B, !A, !B, A v !C...
+ * 6 - Set boolean values to single letters and then make
+ *     the operations.
+ * 7 - 
+ */
+
 const expressionInput = document.getElementById("expression") as HTMLInputElement;
 
 const handleSubmit = (evt: Event) => {
@@ -7,7 +20,7 @@ const handleSubmit = (evt: Event) => {
 
 function run(): void {
     const expression: string = expressionInput.value.replaceAll("!", "¬");
-    const expressionNoSpace = expression.split(" ").join("").split("");
+    const expressionNoSpace: string[] = expression.split(" ").join("").split("");
     if (!checkExpression()) {
         const truthTableDiv: HTMLElement = document.getElementById("truth-table");
         truthTableDiv.textContent = "";
@@ -16,7 +29,7 @@ function run(): void {
     const letters: string[] = takeLetters();
     const notLetters: string[] = takeNotLetters();
     const parenthesesExp: string[] = takeParenthesesExpressions();
-    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬");
+    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // Only to test purposes
     const allOperations: string[] = takeOperations();
     console.log("Letters: ");
     console.log(letters);
@@ -30,7 +43,7 @@ function run(): void {
     console.log(allOperations);
     const truthTable: [string, boolean[]][] = createRows();
     console.log(truthTable);
-    
+
     function checkExpression(): boolean {
         const openParentheses: number = Array.from(expression).filter(value => value == '(').length;
         const closeParentheses: number = Array.from(expression).filter(value => value == ')').length;
@@ -138,7 +151,6 @@ function run(): void {
         let allOperations: string[] = [];
         let actual: string = "";
         let openParentheses: number = 0;
-        // Example: AvB^(AvB)
         for (let i = 0; i < expressionNoSpace.length; i++) {
 
             actual += expressionNoSpace[i];
@@ -153,21 +165,21 @@ function run(): void {
             }
 
             if (openParentheses === 0) {
-                // If previous element is operator and [i] is a uppercase letter
-                // For simple expressions like -> A v B
+
+                // 1 - Previous element is operator
+                // 2 - Actual character is a uppercase letter
+                // For simple expressions like -> AvB
                 if (i > 0 && expressionNoSpace[i - 1].match(/[v^]/g) && expressionNoSpace[i].match(/[A-Z]/g)) {
                     allOperations.push(actual);
                     actual = "";
                 }
 
-                // If previous element is a exclamation mark and the pre-previous is a operator and [i] is a uppercase letter
-                // For simple expressions like -> A v B
-                if (i > 0 && expressionNoSpace[i - 2] && expressionNoSpace[i - 2].match(/[v^]/g) && expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i].match(/[A-Z]/g)) {
-                    allOperations.push(actual);
-                    actual = "";
-                }
-
-                if (!expressionNoSpace[i + 1] && actual !== "") {
+                // 1 - i > 0
+                // 2 - There is a element operator 2 characters before
+                // 3 - Previous character is a negation operator
+                // 4 - Actual character is a uppercase letter
+                // For simple expressions including the negation operator -> Av¬B
+                if (i > 0 && expressionNoSpace[i - 2]?.match(/[v^]/g) && expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i].match(/[A-Z]/g)) {
                     allOperations.push(actual);
                     actual = "";
                 }
@@ -237,7 +249,9 @@ function run(): void {
             truthTable.push(actual);
         }
 
-        // For each expression inside parentheses
+        // For each expression inside parentheses.
+        // If expression begins with "¬",
+        // remove "¬" and parentheses.
         for (let i = 0; i < parenthesesExp.length; i++) {
             let actualExp: string = parenthesesExp[i];
             // Remove initial "¬"
@@ -247,7 +261,9 @@ function run(): void {
             addVariableToTruthTable(actualExp.slice(1, -1));
         }
 
-        // For each expression inside parentheses that is negated 
+        // For each expression inside parentheses that is negated.
+        // First will look for the expression in truthTable and then
+        // invert the booleean values.
         const notExpressions: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // Filter only negations
         for (let i = 0; i < notExpressions.length; i++) {
             let actual: [string, boolean[]] = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
@@ -339,20 +355,14 @@ function run(): void {
         let openParentheses: number = 0;
         // To split values
         for (let i = 0; i < operation.length; i++) {
-            if (operation[i] === '(') {
-                openParentheses++;
-            }
-            if (operation[i] === ')') {
-                openParentheses--;
-            }
-
+            operation[i] === "(" ? openParentheses++ : "";
+            operation[i] === ")" ? openParentheses-- : "";
             actual += operation[i];
-
             if (operation[i] === "¬" || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actual);
-            actual = '';
+            actual = "";
         }
         return operationArray;
     }
@@ -381,18 +391,13 @@ function run(): void {
     function checkParenthesesExpression(expression: string) {
         expression[0] === "¬" ? expression = expression.replace(expression[0], "") : ""; // Remove "¬" if this is the first char in expression
         const slicedOperation: string[] = splitOperation(expression.slice(1, -1)); // Remove parantheses
-        if (slicedOperation.length !== 3) {
-            return false;
-        }
-        return true;
+        return slicedOperation.length !== 3 ? false : true;
     }
 
     const truthTableDiv: HTMLElement = document.getElementById("truth-table");
 
     if (truthTableDiv) {
-        if (truthTableDiv.children) {
-            truthTableDiv.textContent = "";
-        }
+        truthTableDiv.children ? truthTableDiv.textContent = "" : "";
         const table: HTMLTableElement = document.createElement("table");
         table.id = "the-table";
         table.style.opacity = '0';

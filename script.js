@@ -1,3 +1,15 @@
+/**
+ * 1 - Create expression with no spaces.
+ * 2 - Take single letters -> (A, B, C).
+ * 3 - Take not single letters -> (!A, !B).
+ * 4 - Take expressions inside parentheses -> (AvB)vA.
+ * 5 - Take all operations that need to be done
+ *     including the operators to make operations
+ *     in order. -> A, B, !A, !B, A v !C...
+ * 6 - Set boolean values to single letters and then make
+ *     the operations.
+ * 7 -
+ */
 const expressionInput = document.getElementById("expression");
 const handleSubmit = (evt) => {
     evt.preventDefault();
@@ -14,7 +26,7 @@ function run() {
     const letters = takeLetters();
     const notLetters = takeNotLetters();
     const parenthesesExp = takeParenthesesExpressions();
-    const notParenthesesExp = parenthesesExp.filter(exp => exp[0] === "¬");
+    const notParenthesesExp = parenthesesExp.filter(exp => exp[0] === "¬"); // Only to test purposes
     const allOperations = takeOperations();
     console.log("Letters: ");
     console.log(letters);
@@ -125,10 +137,10 @@ function run() {
      * Returns array with separated operations from expression.
      */
     function takeOperations() {
+        var _a;
         let allOperations = [];
         let actual = "";
         let openParentheses = 0;
-        // Example: AvB^(AvB)
         for (let i = 0; i < expressionNoSpace.length; i++) {
             actual += expressionNoSpace[i];
             // To track parentheses
@@ -139,19 +151,19 @@ function run() {
                 continue;
             }
             if (openParentheses === 0) {
-                // If previous element is operator and [i] is a uppercase letter
-                // For simple expressions like -> A v B
+                // 1 - Previous element is operator
+                // 2 - Actual character is a uppercase letter
+                // For simple expressions like -> AvB
                 if (i > 0 && expressionNoSpace[i - 1].match(/[v^]/g) && expressionNoSpace[i].match(/[A-Z]/g)) {
                     allOperations.push(actual);
                     actual = "";
                 }
-                // If previous element is a exclamation mark and the pre-previous is a operator and [i] is a uppercase letter
-                // For simple expressions like -> A v B
-                if (i > 0 && expressionNoSpace[i - 2] && expressionNoSpace[i - 2].match(/[v^]/g) && expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i].match(/[A-Z]/g)) {
-                    allOperations.push(actual);
-                    actual = "";
-                }
-                if (!expressionNoSpace[i + 1] && actual !== "") {
+                // 1 - i > 0
+                // 2 - There is a element operator 2 characters before
+                // 3 - Previous character is a negation operator
+                // 4 - Actual character is a uppercase letter
+                // For simple expressions including the negation operator -> Av¬B
+                if (i > 0 && ((_a = expressionNoSpace[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i].match(/[A-Z]/g)) {
                     allOperations.push(actual);
                     actual = "";
                 }
@@ -217,7 +229,9 @@ function run() {
             }
             truthTable.push(actual);
         }
-        // For each expression inside parentheses
+        // For each expression inside parentheses.
+        // If expression begins with "¬",
+        // remove "¬" and parentheses.
         for (let i = 0; i < parenthesesExp.length; i++) {
             let actualExp = parenthesesExp[i];
             // Remove initial "¬"
@@ -226,7 +240,9 @@ function run() {
             }
             addVariableToTruthTable(actualExp.slice(1, -1));
         }
-        // For each expression inside parentheses that is negated 
+        // For each expression inside parentheses that is negated.
+        // First will look for the expression in truthTable and then
+        // invert the booleean values.
         const notExpressions = parenthesesExp.filter(exp => exp[0] === "¬"); // Filter only negations
         for (let i = 0; i < notExpressions.length; i++) {
             let actual = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
@@ -312,18 +328,14 @@ function run() {
         let openParentheses = 0;
         // To split values
         for (let i = 0; i < operation.length; i++) {
-            if (operation[i] === '(') {
-                openParentheses++;
-            }
-            if (operation[i] === ')') {
-                openParentheses--;
-            }
+            operation[i] === "(" ? openParentheses++ : "";
+            operation[i] === ")" ? openParentheses-- : "";
             actual += operation[i];
             if (operation[i] === "¬" || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actual);
-            actual = '';
+            actual = "";
         }
         return operationArray;
     }
@@ -349,16 +361,11 @@ function run() {
     function checkParenthesesExpression(expression) {
         expression[0] === "¬" ? expression = expression.replace(expression[0], "") : ""; // Remove "¬" if this is the first char in expression
         const slicedOperation = splitOperation(expression.slice(1, -1)); // Remove parantheses
-        if (slicedOperation.length !== 3) {
-            return false;
-        }
-        return true;
+        return slicedOperation.length !== 3 ? false : true;
     }
     const truthTableDiv = document.getElementById("truth-table");
     if (truthTableDiv) {
-        if (truthTableDiv.children) {
-            truthTableDiv.textContent = "";
-        }
+        truthTableDiv.children ? truthTableDiv.textContent = "" : "";
         const table = document.createElement("table");
         table.id = "the-table";
         table.style.opacity = '0';
