@@ -19,6 +19,7 @@ function run() {
     const expression = expressionInput.value.replaceAll("!", "¬");
     const expressionNoSpace = expression.split(" ").join("").split("");
     const invertedExpressionNoSpace = invertExpression();
+    console.log(invertedExpressionNoSpace);
     if (!checkExpression()) {
         const truthTableDiv = document.getElementById("truth-table");
         truthTableDiv.textContent = "";
@@ -327,9 +328,10 @@ function run() {
             let operationToDisplay = operation;
             // If last char of "operation" is operator, add previous operation to string.
             if (operation[operation.length - 1].match(/[v^]/g)) {
-                operationToDisplay = operation + allOperations[allOperations.indexOf(operation) - 1]; // To display less parentheses inserted by algorithm
-                operation = operation + "(" + allOperations[allOperations.indexOf(operation) - 1] + ")";
+                operationToDisplay = operation + truthTable[truthTable.length - 1][0]; // To display less parentheses inserted by algorithm
+                operation = operation + "(" + truthTable[truthTable.length - 1][0] + ")";
             }
+            console.log(operation);
             let actual = [operationToDisplay, []]; // Set array to the operation
             let operationArray = splitOperation(operation); // Split expression
             const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
