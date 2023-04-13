@@ -18,6 +18,7 @@ const handleSubmit = (evt) => {
 function run() {
     const expression = expressionInput.value.replaceAll("!", "¬");
     const expressionNoSpace = expression.split(" ").join("").split("");
+    const invertedExpressionNoSpace = invertExpression();
     if (!checkExpression()) {
         const truthTableDiv = document.getElementById("truth-table");
         truthTableDiv.textContent = "";
@@ -62,6 +63,31 @@ function run() {
         }
         return true;
     }
+    // Invert expression to perform operations from right to left
+    function invertExpression() {
+        let actual = "";
+        let inverseExpression = [];
+        let openParentheses = 0;
+        for (let i = 0; i < expressionNoSpace.length; i++) {
+            actual += expressionNoSpace[i];
+            if (expressionNoSpace[i] === "(") {
+                openParentheses++;
+                continue;
+            }
+            if (expressionNoSpace[i] === ")") {
+                openParentheses--;
+            }
+            // Detects if next char is "-" indicating "->"
+            if (["¬", "-", ">"].includes(expressionNoSpace[i]) || expressionNoSpace[i + 1] === "-") {
+                continue;
+            }
+            if (openParentheses === 0) {
+                inverseExpression.push(actual);
+                actual = "";
+            }
+        }
+        return inverseExpression.reverse().join("").split("");
+    }
     /**
     * Returns array of unique variables in found order.
     */
@@ -84,8 +110,7 @@ function run() {
         let notLetters = [];
         for (let i = 0; i < expressionNoSpace.length; i++) {
             if (expressionNoSpace[i] === "¬" && expressionNoSpace[i + 1] && expressionNoSpace[i + 1].match(/[A-Z]/)) {
-                let actual = '';
-                actual += "¬";
+                let actual = "¬";
                 actual += expressionNoSpace[i + 1];
                 if (!notLetters.includes(actual)) {
                     notLetters.push(actual);
@@ -135,36 +160,51 @@ function run() {
     }
     /**
      * Returns array with separated operations from expression.
+     * Separate operations using invertedExpressionNoSpace.
      */
     function takeOperations() {
         var _a;
         let allOperations = [];
         let actual = "";
         let openParentheses = 0;
-        for (let i = 0; i < expressionNoSpace.length; i++) {
-            actual += expressionNoSpace[i];
+        let toPush = false;
+        for (let i = 0; i < invertedExpressionNoSpace.length; i++) {
+            actual += invertedExpressionNoSpace[i];
             // To track parentheses
-            expressionNoSpace[i] === "(" ? openParentheses++ : '';
-            expressionNoSpace[i] === ")" ? openParentheses-- : '';
+            invertedExpressionNoSpace[i] === "(" ? openParentheses++ : '';
+            invertedExpressionNoSpace[i] === ")" ? openParentheses-- : '';
             // To check "¬" or remaining operation
-            if (expressionNoSpace[i] === "¬" && actual === "") {
+            if (invertedExpressionNoSpace[i] === "¬" && actual === "") {
                 continue;
             }
             if (openParentheses === 0) {
                 // 1 - Previous element is operator
                 // 2 - Actual character is a uppercase letter
                 // For simple expressions like -> AvB
-                if (i > 0 && expressionNoSpace[i - 1].match(/[v^]/g) && expressionNoSpace[i].match(/[A-Z]/g)) {
-                    allOperations.push(actual);
-                    actual = "";
+                if (i > 0 && invertedExpressionNoSpace[i - 1].match(/[v^]/g) && invertedExpressionNoSpace[i].match(/[A-Z]/g)) {
+                    toPush = true;
                 }
                 // 1 - i > 0
                 // 2 - There is a element operator 2 characters before
                 // 3 - Previous character is a negation operator
                 // 4 - Actual character is a uppercase letter
                 // For simple expressions including the negation operator -> Av¬B
-                if (i > 0 && ((_a = expressionNoSpace[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && expressionNoSpace[i - 1] === "¬" && expressionNoSpace[i].match(/[A-Z]/g)) {
+                if (i > 0 && ((_a = invertedExpressionNoSpace[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && invertedExpressionNoSpace[i - 1] === "¬" && invertedExpressionNoSpace[i].match(/[A-Z]/g)) {
+                    toPush = true;
+                }
+                if (toPush) {
+                    // If begins with operator, move operator to the end.
+                    if (actual[0].match(/[v^]/g)) {
+                        let operator = actual[0];
+                        let newActual = actual.slice(actual.indexOf(operator) + 1);
+                        actual = newActual + operator;
+                    }
+                    else {
+                        const operations = splitOperation(actual);
+                        actual = operations[2] + operations[1] + operations[0];
+                    }
                     allOperations.push(actual);
+                    toPush = false;
                     actual = "";
                 }
             }
@@ -285,10 +325,10 @@ function run() {
          */
         function addVariableToTruthTable(operation) {
             let operationToDisplay = operation;
-            // If first char is operator, add previous operation to string.
-            if (operation[0].match(/[v^]/g)) {
-                operationToDisplay = allOperations[allOperations.indexOf(operation) - 1] + operation;
-                operation = "(" + allOperations[allOperations.indexOf(operation) - 1] + ")" + operation;
+            // If last char of "operation" is operator, add previous operation to string.
+            if (operation[operation.length - 1].match(/[v^]/g)) {
+                operationToDisplay = operation + allOperations[allOperations.indexOf(operation) - 1]; // To display less parentheses inserted by algorithm
+                operation = operation + "(" + allOperations[allOperations.indexOf(operation) - 1] + ")";
             }
             let actual = [operationToDisplay, []]; // Set array to the operation
             let operationArray = splitOperation(operation); // Split expression
