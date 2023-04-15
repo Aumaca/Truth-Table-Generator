@@ -164,7 +164,7 @@ function run() {
      * Separate operations using invertedExpressionNoSpace.
      */
     function takeOperations() {
-        var _a;
+        var _a, _b, _c, _d;
         let allOperations = [];
         let actual = "";
         let openParentheses = 0;
@@ -175,39 +175,40 @@ function run() {
             invertedExpressionNoSpace[i] === "(" ? openParentheses++ : '';
             invertedExpressionNoSpace[i] === ")" ? openParentheses-- : '';
             // To check "¬" or remaining operation
-            if (invertedExpressionNoSpace[i] === "¬" && actual === "") {
+            if (invertedExpressionNoSpace[i] === "¬" || openParentheses > 0) {
                 continue;
             }
-            if (openParentheses === 0) {
-                // 1 - Previous element is operator
-                // 2 - Actual character is a uppercase letter
-                // For simple expressions like -> AvB
-                if (i > 0 && invertedExpressionNoSpace[i - 1].match(/[v^]/g) && invertedExpressionNoSpace[i].match(/[A-Z]/g)) {
-                    toPush = true;
+            // For simple expressions like -> AvB
+            // 1 - Previous element is operator
+            // 2 - Actual character is a uppercase letter
+            if (i > 0 && ((_a = invertedExpressionNoSpace[i - 1]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && ((_b = invertedExpressionNoSpace[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
+                toPush = true;
+            }
+            // For simple expressions including the negation operator -> Av¬B
+            // 1 - There is a element operator 2 characters before
+            // 2 - Previous character is a negation operator
+            // 3 - Actual character is a uppercase letter
+            if (i > 0 && ((_c = invertedExpressionNoSpace[i - 2]) === null || _c === void 0 ? void 0 : _c.match(/[v^]/g)) && invertedExpressionNoSpace[i - 1] === "¬" && ((_d = invertedExpressionNoSpace[i]) === null || _d === void 0 ? void 0 : _d.match(/[A-Z]/g))) {
+                toPush = true;
+            }
+            // For expressions including parentheses
+            if (i > 0 && actual.indexOf("(") > -1 && splitOperation(actual).length === 3) {
+                toPush = true;
+            }
+            if (toPush === true) {
+                // If begins with operator, move operator to the end.
+                if (actual[0].match(/[v^]/g)) {
+                    let operator = actual[0];
+                    let newActual = actual.slice(actual.indexOf(operator) + 1);
+                    actual = newActual + operator;
                 }
-                // 1 - i > 0
-                // 2 - There is a element operator 2 characters before
-                // 3 - Previous character is a negation operator
-                // 4 - Actual character is a uppercase letter
-                // For simple expressions including the negation operator -> Av¬B
-                if (i > 0 && ((_a = invertedExpressionNoSpace[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && invertedExpressionNoSpace[i - 1] === "¬" && invertedExpressionNoSpace[i].match(/[A-Z]/g)) {
-                    toPush = true;
+                else {
+                    const operations = splitOperation(actual);
+                    actual = operations[2] + operations[1] + operations[0];
                 }
-                if (toPush) {
-                    // If begins with operator, move operator to the end.
-                    if (actual[0].match(/[v^]/g)) {
-                        let operator = actual[0];
-                        let newActual = actual.slice(actual.indexOf(operator) + 1);
-                        actual = newActual + operator;
-                    }
-                    else {
-                        const operations = splitOperation(actual);
-                        actual = operations[2] + operations[1] + operations[0];
-                    }
-                    allOperations.push(actual);
-                    toPush = false;
-                    actual = "";
-                }
+                allOperations.push(actual);
+                toPush = false;
+                actual = "";
             }
         }
         return allOperations;

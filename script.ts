@@ -189,42 +189,43 @@ function run(): void {
             invertedExpressionNoSpace[i] === ")" ? openParentheses-- : '';
 
             // To check "¬" or remaining operation
-            if (invertedExpressionNoSpace[i] === "¬" && actual === "") {
+            if (invertedExpressionNoSpace[i] === "¬" || openParentheses > 0) {
                 continue;
             }
 
-            if (openParentheses === 0) {
+            // For simple expressions like -> AvB
+            // 1 - Previous element is operator
+            // 2 - Actual character is a uppercase letter
+            if (i > 0 && invertedExpressionNoSpace[i - 1]?.match(/[v^]/g) && invertedExpressionNoSpace[i]?.match(/[A-Z]/g)) {
+                toPush = true;
+            }
 
-                // 1 - Previous element is operator
-                // 2 - Actual character is a uppercase letter
-                // For simple expressions like -> AvB
-                if (i > 0 && invertedExpressionNoSpace[i - 1].match(/[v^]/g) && invertedExpressionNoSpace[i].match(/[A-Z]/g)) {
-                    toPush = true;
-                }
+            // For simple expressions including the negation operator -> Av¬B
+            // 1 - There is a element operator 2 characters before
+            // 2 - Previous character is a negation operator
+            // 3 - Actual character is a uppercase letter
+            if (i > 0 && invertedExpressionNoSpace[i - 2]?.match(/[v^]/g) && invertedExpressionNoSpace[i - 1] === "¬" && invertedExpressionNoSpace[i]?.match(/[A-Z]/g)) {
+                toPush = true;
+            }
 
-                // 1 - i > 0
-                // 2 - There is a element operator 2 characters before
-                // 3 - Previous character is a negation operator
-                // 4 - Actual character is a uppercase letter
-                // For simple expressions including the negation operator -> Av¬B
-                if (i > 0 && invertedExpressionNoSpace[i - 2]?.match(/[v^]/g) && invertedExpressionNoSpace[i - 1] === "¬" && invertedExpressionNoSpace[i].match(/[A-Z]/g)) {
-                    toPush = true;
-                }
+            // For expressions including parentheses
+            if (i > 0 && actual.indexOf("(") > -1 && splitOperation(actual).length === 3) {
+                toPush = true;
+            }
 
-                if (toPush) {
-                    // If begins with operator, move operator to the end.
-                    if (actual[0].match(/[v^]/g)) {
-                        let operator: string = actual[0];
-                        let newActual: string = actual.slice(actual.indexOf(operator) + 1);
-                        actual = newActual + operator;
-                    } else {
-                        const operations = splitOperation(actual);
-                        actual = operations[2] + operations[1] + operations[0];
-                    }
-                    allOperations.push(actual);
-                    toPush = false;
-                    actual = "";
+            if (toPush === true) {
+                // If begins with operator, move operator to the end.
+                if (actual[0].match(/[v^]/g)) {
+                    let operator: string = actual[0];
+                    let newActual: string = actual.slice(actual.indexOf(operator) + 1);
+                    actual = newActual + operator;
+                } else {
+                    const operations = splitOperation(actual);
+                    actual = operations[2] + operations[1] + operations[0];
                 }
+                allOperations.push(actual);
+                toPush = false;
+                actual = "";
             }
         }
         return allOperations;
