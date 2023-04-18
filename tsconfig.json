@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "ES6",
-        "module": "CommonJS",
+        "target": "es6",
         "sourceMap": true,
-        "lib": ["ES2022", "dom"]
+        "lib": ["ES2022", "dom"],
+        "module": "commonjs",
     }
 }
