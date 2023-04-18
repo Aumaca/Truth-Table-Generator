@@ -55,6 +55,7 @@ form button:active {
     display: flex;
     justify-content: center;
     letter-spacing: 3px;
+    overflow-x: scroll;
 }
 
 table {
