@@ -250,12 +250,10 @@ function run() {
         }
         return truthTable;
         function addVariableToTruthTable(operation) {
-            let operationToDisplay = operation;
             if (operation[operation.length - 1].match(/[v^]/g)) {
-                operationToDisplay = operation + truthTable[truthTable.length - 1][0];
                 operation = operation + "(" + truthTable[truthTable.length - 1][0] + ")";
             }
-            let actual = [operationToDisplay, []];
+            let actual = [operation, []];
             let operationArray = splitOperation(operation);
             const [firstVar, operator, secondVar] = operationArray;
             let firstVarValues = getValuesTruthTable(firstVar, truthTable);
@@ -313,8 +311,10 @@ function run() {
         return truthTable[index][1];
     }
     const truthTableDiv = document.getElementById("truth-table");
+    const truthTableCategoryDiv = document.getElementById("truth-table-category");
     if (truthTableDiv) {
         truthTableDiv.children ? truthTableDiv.textContent = "" : "";
+        truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
         const table = document.createElement("table");
         table.id = "the-table";
         table.style.opacity = '0';
@@ -346,8 +346,19 @@ function run() {
         }
         table.appendChild(tableBodyElement);
         truthTableDiv.appendChild(table);
+        const paragraph = document.createElement("h4");
+        if (truthTable[truthTable.length - 1][1].every((bool) => bool === true)) {
+            paragraph.textContent = "Tautology";
+            paragraph.className = "tautology";
+        }
+        else {
+            paragraph.textContent = "Contradiction";
+            paragraph.className = "contradiction";
+        }
+        truthTableCategoryDiv.appendChild(paragraph);
         setTimeout(() => {
             table.style.opacity = "1";
+            truthTableCategoryDiv.style.opacity = "1";
         }, 100);
     }
 }

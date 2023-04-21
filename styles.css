@@ -58,13 +58,37 @@ form button:active {
     border-radius: 5px 5px 0px 0px;
 }
 
-table {
+table,
+.truth-table-category {
     width: 100%;
     background-color: white;
-    color: black;
     text-align: center;
     opacity: 0;
     transition: opacity 0.6s ease-in-out;
+}
+
+.truth-table-category {
+    border-radius: 8px;
+}
+
+.truth-table-category h4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0!important;
+    padding: 10px;
+}
+
+.truth-table-category .tautology {
+    color: #00A36C;
+}
+
+.truth-table-category .contradiction {
+    color: #D2042D;
+}
+
+table {
+    color: black;
     border-radius: 5px 5px 0px 0px;
 }
 

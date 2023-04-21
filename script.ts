@@ -348,13 +348,11 @@ function run(): void {
          * It's not used to process letters and notLetters.
          */
         function addVariableToTruthTable(operation: string): void {
-            let operationToDisplay: string = operation;
             // If last char of "operation" is operator, add previous operation to string.
             if (operation[operation.length - 1].match(/[v^]/g)) {
-                operationToDisplay = operation + truthTable[truthTable.length - 1][0]; // To display less parentheses inserted by algorithm
                 operation = operation + "(" + truthTable[truthTable.length - 1][0] + ")";
             }
-            let actual: [string, boolean[]] = [operationToDisplay, []]; // Set array to the operation
+            let actual: [string, boolean[]] = [operation, []]; // Set array to the operation
             let operationArray: string[] = splitOperation(operation); // Split expression
             const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
             let firstVarValues: boolean[] = getValuesTruthTable(firstVar, truthTable);
@@ -423,9 +421,11 @@ function run(): void {
     }
 
     const truthTableDiv: HTMLElement = document.getElementById("truth-table");
+    const truthTableCategoryDiv: HTMLElement = document.getElementById("truth-table-category");
 
     if (truthTableDiv) {
         truthTableDiv.children ? truthTableDiv.textContent = "" : "";
+        truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
         const table: HTMLTableElement = document.createElement("table");
         table.id = "the-table";
         table.style.opacity = '0';
@@ -463,8 +463,21 @@ function run(): void {
         }
         table.appendChild(tableBodyElement);
         truthTableDiv.appendChild(table);
+
+        // To display if expression results in a Tautology or Contradiction
+        const paragraph: HTMLParagraphElement = document.createElement("h4");
+        if (truthTable[truthTable.length - 1][1].every((bool) => bool === true)) {
+            paragraph.textContent = "Tautology";
+            paragraph.className = "tautology";
+        } else {
+            paragraph.textContent = "Contradiction";
+            paragraph.className = "contradiction";
+        }
+        truthTableCategoryDiv.appendChild(paragraph);
+
         setTimeout(() => {
             table.style.opacity = "1";
+            truthTableCategoryDiv.style.opacity = "1";
         }, 100);
     }
 }
