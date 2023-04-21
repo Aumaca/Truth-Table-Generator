@@ -1,14 +1,30 @@
 /**
- * 1 - Create expression with no spaces.
- * 2 - Take single letters -> (A, B, C).
- * 3 - Take not single letters -> (!A, !B).
- * 4 - Take expressions within parentheses -> (AvB)vA.
- * 5 - Take all operations that need to be done,
+ * 1 - Receives expression input.
+ * 
+ * 2 - Create expression with no spaces.
+ * 
+ * 3 - Invert expression using function, to take operations from right to left.
+ * 
+ * 4 - Check if the expression is correct.
+ * 
+ * 5 - Take single letters -> (A, B, C).
+ * 
+ * 6 - Take not single letters -> (!A, !B).
+ * 
+ * 7 - Take expressions within parentheses -> (AvB)vA.
+ * 
+ * 8 - Take expressions within parentheses with negation before -> ¬(AvB)vA.
+ * 
+ * 9 - Take all operations that need to be done,
  *     including the operators to make operations
  *     in order. -> A, B, !A, !B, A v !C...
- * 6 - Set boolean values to single letters and then make
- *     the operations.
+ * 
+ * 10 - Set boolean values to single letters andn make the necessary steps
+ * to accomplish all operations.
+ * 
+ * 11 - Display to user including the data to HTML.
  */
+
 const expressionInput = document.getElementById("expression") as HTMLInputElement;
 const handleSubmit = (evt: Event) => {
     evt.preventDefault();
@@ -19,7 +35,6 @@ function run(): void {
     const expression: string = expressionInput.value.replaceAll("!", "¬");
     const expressionNoSpace: string = expression.split(" ").join("");
     const invertedExpressionNoSpace: string = invertExpression(expressionNoSpace);
-    console.log(invertedExpressionNoSpace);
     if (!checkExpression()) {
         const truthTableDiv: HTMLElement = document.getElementById("truth-table");
         truthTableDiv.textContent = "";
@@ -29,7 +44,7 @@ function run(): void {
     const letters: string[] = takeLetters();
     const notLetters: string[] = takeNotLetters();
     const parenthesesExp: string[] = takeParenthesesExpressions(expressionNoSpace);
-    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // Only to test purposes
+    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬");
     const allOperations: string[] = takeOperations(invertedExpressionNoSpace);
     console.log("Letters: ");
     console.log(letters);
@@ -82,7 +97,6 @@ function run(): void {
             }
             if (expression[i] === ")") {
                 openParentheses--;
-                continue;
             }
             // Detects if next char is "-" indicating "->"
             if (["¬", "-", ">"].includes(expression[i]) || expression[i + 1] === "-") {
@@ -178,7 +192,7 @@ function run(): void {
             expression[i] === ")" ? openParentheses-- : '';
 
             // To check "¬" or remaining operation
-            if (expression[i] === "¬" || openParentheses > 0 || i === 0) {
+            if (expression[i] === "¬" || openParentheses > 0) {
                 continue;
             }
 
@@ -192,6 +206,11 @@ function run(): void {
             // 2 - Previous character is a negation operator
             // 3 - Actual character is a uppercase letter
             if (expression[i - 2]?.match(/[v^]/g) && expression[i - 1] === "¬" && expression[i]?.match(/[A-Z]/g)) {
+                toPush = true;
+            }
+
+            // For expression that form an operation
+            if (actual.indexOf("(") === -1 && splitOperation(actual).length === 3) {
                 toPush = true;
             }
 
@@ -300,13 +319,12 @@ function run(): void {
         // For each expression inside parentheses that is negated.
         // First will look for the expression in truthTable and then
         // invert the booleean values.
-        const notExpressions: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // Filter only negations
-        for (let i = 0; i < notExpressions.length; i++) {
-            let actual: [string, boolean[]] = [notExpressions[i], []]; // Set actual array to be pushed to truthTable
+        for (let i = 0; i < notParenthesesExp.length; i++) {
+            let actual: [string, boolean[]] = [notParenthesesExp[i], []]; // Set actual array to be pushed to truthTable
             let expressionIndex: number = 0; // Index of expression in truthTable
 
             // Return the index of a expression in truthTable to access his boolean values
-            let expression: string = notExpressions[i];
+            let expression: string = notParenthesesExp[i];
             expression = expression.replace(expression[0], "").slice(1, -1); // Remove "¬" and parentheses
 
             for (let i = 0; i < truthTable.length; i++) {
@@ -353,7 +371,6 @@ function run(): void {
                 operationToDisplay = operation + truthTable[truthTable.length - 1][0]; // To display less parentheses inserted by algorithm
                 operation = operation + "(" + truthTable[truthTable.length - 1][0] + ")";
             }
-            console.log(operation);
             let actual: [string, boolean[]] = [operationToDisplay, []]; // Set array to the operation
             let operationArray: string[] = splitOperation(operation); // Split expression
             const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
