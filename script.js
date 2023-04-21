@@ -226,23 +226,14 @@ function run() {
             for (let x of operations) {
                 addVariableToTruthTable(x);
             }
-        }
-        for (let i = 0; i < notParenthesesExp.length; i++) {
-            let actual = [notParenthesesExp[i], []];
-            let expressionIndex = 0;
-            let expression = notParenthesesExp[i];
-            expression = expression.replace(expression[0], "").slice(1, -1);
-            for (let i = 0; i < truthTable.length; i++) {
-                if (truthTable[i][0] === expression) {
-                    expressionIndex = i;
-                    break;
+            if (parenthesesExp[i][0] === "¬") {
+                let actual = [parenthesesExp[i], []];
+                for (let i = 0; i < cases; i++) {
+                    let boolValue = truthTable[truthTable.length - 1][1][i];
+                    boolValue === true ? actual[1].push(false) : actual[1].push(true);
                 }
+                truthTable.push(actual);
             }
-            for (let i = 0; i < cases; i++) {
-                let boolValue = truthTable[expressionIndex][1][i];
-                boolValue === true ? actual[1].push(false) : actual[1].push(true);
-            }
-            truthTable.push(actual);
         }
         for (let i = 0; i < allOperations.length; i++) {
             let operation = allOperations[i];

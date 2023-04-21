@@ -44,7 +44,7 @@ function run(): void {
     const letters: string[] = takeLetters();
     const notLetters: string[] = takeNotLetters();
     const parenthesesExp: string[] = takeParenthesesExpressions(expressionNoSpace);
-    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬");
+    const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // For tests purpose
     const allOperations: string[] = takeOperations(invertedExpressionNoSpace);
     console.log("Letters: ");
     console.log(letters);
@@ -314,32 +314,15 @@ function run(): void {
             for (let x of operations) {
                 addVariableToTruthTable(x);
             }
-        }
-
-        // For each expression inside parentheses that is negated.
-        // First will look for the expression in truthTable and then
-        // invert the booleean values.
-        for (let i = 0; i < notParenthesesExp.length; i++) {
-            let actual: [string, boolean[]] = [notParenthesesExp[i], []]; // Set actual array to be pushed to truthTable
-            let expressionIndex: number = 0; // Index of expression in truthTable
-
-            // Return the index of a expression in truthTable to access his boolean values
-            let expression: string = notParenthesesExp[i];
-            expression = expression.replace(expression[0], "").slice(1, -1); // Remove "¬" and parentheses
-
-            for (let i = 0; i < truthTable.length; i++) {
-                if (truthTable[i][0] === expression) {
-                    expressionIndex = i;
-                    break;
+            if (parenthesesExp[i][0] === "¬") {
+                let actual: [string, boolean[]] = [parenthesesExp[i], []]; // Set actual array to be pushed to truthTable
+                // For booleans values from expression
+                for (let i = 0; i < cases; i++) {
+                    let boolValue: boolean = truthTable[truthTable.length - 1][1][i];
+                    boolValue === true ? actual[1].push(false) : actual[1].push(true);
                 }
+                truthTable.push(actual);
             }
-
-            // For booleans values from expression
-            for (let i = 0; i < cases; i++) {
-                let boolValue: boolean = truthTable[expressionIndex][1][i];
-                boolValue === true ? actual[1].push(false) : actual[1].push(true);
-            }
-            truthTable.push(actual);
         }
 
 
