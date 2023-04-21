@@ -52,17 +52,20 @@ form button:active {
 
 /* TABLE */
 .truth-table {
+    width: 100%;
     letter-spacing: 3px;
     overflow-x: auto;
     border-radius: 5px 5px 0px 0px;
 }
 
 table {
+    width: 100%;
     background-color: white;
     color: black;
     text-align: center;
     opacity: 0;
     transition: opacity 0.6s ease-in-out;
+    border-radius: 5px 5px 0px 0px;
 }
 
 thead tr th {
