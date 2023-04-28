@@ -11,16 +11,14 @@
  * 
  * 6 - Take not single letters -> (!A, !B).
  * 
- * 7 - Take expressions within parentheses -> (AvB)vA.
- * 
- * 8 - Take expressions within parentheses with negation before -> ¬(AvB)vA.
+ * 7 - Take expressions within parentheses (being negated or not) -> (AvB)vA.
  * 
  * 9 - Take all operations that need to be done,
  *     including the operators to make operations
  *     in order. -> A, B, !A, !B, A v !C...
  * 
- * 10 - Set boolean values to single letters andn make the necessary steps
- * to accomplish all operations.
+ * 10 - Set boolean values to single letters and then make the necessary steps
+ *      to accomplish all operations.
  * 
  * 11 - Display to user including the data to HTML.
  */
@@ -57,8 +55,9 @@ function run(): void {
     console.log("All operations: ");
     console.log(allOperations);
     const truthTable: [string, boolean[]][] = createRows();
+    console.log("truthTable: ");
+    console.log(truthTable);
 
-    // Perform verification to check if the expression is valid
     function checkExpression(): boolean {
         const openParentheses: number = Array.from(expression).filter(value => value == '(').length;
         const closeParentheses: number = Array.from(expression).filter(value => value == ')').length;
@@ -84,7 +83,10 @@ function run(): void {
         return true;
     }
 
-    // Invert expression to perform operations from right to left
+    /**
+     * Returns the inverted expression of an given expression.
+     * @param expression
+     */
     function invertExpression(expression: string): string {
         let actual: string = "";
         let inverseExpression: string[] = [];
@@ -110,7 +112,80 @@ function run(): void {
         return inverseExpression.reverse().join("");
     }
 
-    // Returns array of unique variables in found order.
+    /**
+     * Return a new expression with AND operations surrounded by parentheses
+     * OR a array with the AND operations.
+     * @param expression - Inverted expression.
+     * @param toReturn - "newExpression" to return a newExpression or "operations" to return array containing the operations
+     */
+    function TakeAndOperations(expression: string, toReturn: string): string[] {
+        let newExpression: string[] = Array.from(expression);
+        let andOperations: string[] = [];
+        let actual: string = "";
+        let openParentheses: number = 0;
+        let toPush: boolean = false;
+
+        for (let i = 0; i < expression.length; i++) {
+
+            actual += expression[i];
+            expression[i] === "(" ? openParentheses++ : '';
+            expression[i] === ")" ? openParentheses-- : '';
+            
+            if (expression[i] === "¬" || openParentheses > 0) {
+                continue;
+            }
+
+            // For expressions that begins with a operator
+            if (actual[0].match(/[v^]/g) && actual[1]) {
+                toPush = true;
+            }
+
+            // For simple expressions including the negation operator -> Av¬B
+            // 1 - There is a element operator 2 characters before
+            // 2 - Previous character is a negation operator
+            // 3 - Actual character is a uppercase letter
+            if (expression[i - 2]?.match(/[v^]/g) && expression[i - 1] === "¬" && expression[i]?.match(/[A-Z]/g)) {
+                toPush = true;
+            }
+
+            if (splitOperation(actual).length === 3) {
+                toPush = true;
+            }
+
+            if (toPush === true) {
+                const operations = splitOperation(actual);
+                if (operations[1] === "^") {
+                    andOperations.push(actual);
+                    actual = "";
+                } else {
+                    actual = operations[operations.length - 1]; // Last variable
+                }
+                toPush = false;
+            }
+        }
+
+        let charsToSkip: number = 0;
+        for (let i = 0; i < andOperations.length; i++) {
+            const beginIndex: number = expression.indexOf(andOperations[i]) + charsToSkip;
+            const endIndex: number = andOperations[i].length + beginIndex + 1;
+            newExpression.splice(beginIndex, 0, "(");
+            newExpression.splice(endIndex, 0, ")");
+            // The expression argument is inverted, so the operation within parentheses will be
+            // inverted to check after if operation was already done in truthTable.
+            newExpression = newExpression.join("").replace(andOperations[i], invertExpression(andOperations[i])).split("");
+            charsToSkip += 2;
+        }
+        if (toReturn === "newExpression") {
+            return newExpression;
+        }
+        if (toReturn === "operations") {
+            return andOperations;
+        }
+    }
+
+    /**
+     * Gets all individual variables (letters) of the expression.
+     */
     function takeLetters(): string[] {
         let letters: string[] = [];
         for (let i = 0; i < expressionNoSpace.length; i++) {
@@ -124,7 +199,9 @@ function run(): void {
         return letters;
     };
 
-    // Returns array of unique variables with "¬" before (negation).
+    /**
+     * Gets all individual variables (letters) of the expression with a negation operator ("¬") before.
+     */
     function takeNotLetters(): string[] {
         let notLetters: string[] = [];
         for (let i = 0; i < expressionNoSpace.length; i++) {
@@ -143,6 +220,7 @@ function run(): void {
     /**
      * Returns indexes array of where the characters were found.
      * @param char - Character to be found.
+     * @param expressionNoSpace - Expression's array without spaces.
      */
     function takeIndexs(char: string, expressionNoSpace: string[]): number[] {
         let indexs: number[] = [];
@@ -154,6 +232,7 @@ function run(): void {
 
     /**
      * Returns expressions within parentheses, from innermost to outermost.
+     * @param expression - Expression in array without space
      */
     function takeParenthesesExpressions(expressionNoSpace: string): string[] {
         const openParenthesesIndexs: number[] = takeIndexs('(', expressionNoSpace.split("")).reverse();
@@ -183,16 +262,21 @@ function run(): void {
         let actual: string = "";
         let openParentheses: number = 0;
         let toPush: boolean = false;
-        for (let i = 0; i < expression.length; i++) {
+        let newExpression: string[] = TakeAndOperations(expression, "newExpression"); // Returns newExpression string (with AND operations surrounded by parentheses)
+        let andOperations: string[] = TakeAndOperations(expression, "operations");// Returns operations with ^ in array.
+        andOperations.map((operation) => {
+            allOperations.push(invertExpression(operation));
+        });
+        for (let i = 0; i < newExpression.length; i++) {
 
-            actual += expression[i];
+            actual += newExpression[i];
 
             // To track parentheses
-            expression[i] === "(" ? openParentheses++ : '';
-            expression[i] === ")" ? openParentheses-- : '';
+            newExpression[i] === "(" ? openParentheses++ : '';
+            newExpression[i] === ")" ? openParentheses-- : '';
 
             // To check "¬" or remaining operation
-            if (expression[i] === "¬" || openParentheses > 0) {
+            if (newExpression[i] === "¬" || openParentheses > 0) {
                 continue;
             }
 
@@ -205,17 +289,12 @@ function run(): void {
             // 1 - There is a element operator 2 characters before
             // 2 - Previous character is a negation operator
             // 3 - Actual character is a uppercase letter
-            if (expression[i - 2]?.match(/[v^]/g) && expression[i - 1] === "¬" && expression[i]?.match(/[A-Z]/g)) {
+            if (newExpression[i - 2]?.match(/[v^]/g) && newExpression[i - 1] === "¬" && newExpression[i]?.match(/[A-Z]/g)) {
                 toPush = true;
             }
 
             // For expression that form an operation
-            if (actual.indexOf("(") === -1 && splitOperation(actual).length === 3) {
-                toPush = true;
-            }
-
-            // For expressions including parentheses
-            if (actual.indexOf("(") > -1 && splitOperation(actual).length === 3) {
+            if (splitOperation(actual).length === 3) {
                 toPush = true;
             }
 
@@ -240,9 +319,10 @@ function run(): void {
     /**
      * Create rows using arrays with the variable followed by his boolean values.
      * 1 - Create boolean values for each letter in letters.
-     * 2 - Create boolean values for each letter negated in notLetters.
+     * 2 - Create boolean values for each letter in notLetters.
      * 3 - Create boolean values for each expression within parentheses.
      * 4 - Create boolean values for each expression within parentheses with negation.
+     * 5 - Create boolean values for each operation in allOperations.
      */
     function createRows(): [string, boolean[]][] {
         const cases: number = 2 ** letters.length;
@@ -344,20 +424,33 @@ function run(): void {
 
         /**
          * Receive operation and then make all necessary steps to
-         * make operation and set to truthTable array.
+         * make the operation and set to truthTable array.
          * It's not used to process letters and notLetters.
          */
         function addVariableToTruthTable(operation: string): void {
-            // If last char of "operation" is operator, add previous operation to string.
+            // If last char of "operation" is operator, add previous operation to operation.
             if (operation[operation.length - 1].match(/[v^]/g)) {
                 operation = operation + "(" + truthTable[truthTable.length - 1][0] + ")";
             }
-            let actual: [string, boolean[]] = [operation, []]; // Set array to the operation
-            let operationArray: string[] = splitOperation(operation); // Split expression
-            const [firstVar, operator, secondVar] = operationArray; // Takes expression's elements
+
+            let operationArray: string[] = splitOperation(operation);
+            let [firstVar, operator, secondVar] = operationArray;
+
+            let operationToDisplay: string[] = operationArray;
+            if (firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")") {
+                if (!parenthesesExp.includes(firstVar.slice(1, -1))) {
+                    operationToDisplay[0] = firstVar.slice(1, -1)
+                }
+            }
+            if (secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")") {
+                if (!parenthesesExp.includes(secondVar.slice(1, -1))) {
+                    operationToDisplay[2] = secondVar.slice(1, -1)
+                }
+            }
+
+            let actual: [string, boolean[]] = [operationToDisplay.join(""), []];
             let firstVarValues: boolean[] = getValuesTruthTable(firstVar, truthTable);
             let secondVarValues: boolean[] = getValuesTruthTable(secondVar, truthTable);
-            // Generate conditionals results for each case and store to actual[1]
             for (let i = 0; i < cases; i++) {
                 let actualValueCase: boolean = false;
                 if (operator === 'v') {

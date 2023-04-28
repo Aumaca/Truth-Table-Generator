@@ -29,6 +29,8 @@ function run() {
     console.log("All operations: ");
     console.log(allOperations);
     const truthTable = createRows();
+    console.log("truthTable: ");
+    console.log(truthTable);
     function checkExpression() {
         const openParentheses = Array.from(expression).filter(value => value == '(').length;
         const closeParentheses = Array.from(expression).filter(value => value == ')').length;
@@ -70,6 +72,57 @@ function run() {
             }
         }
         return inverseExpression.reverse().join("");
+    }
+    function TakeAndOperations(expression, toReturn) {
+        var _a, _b;
+        let newExpression = Array.from(expression);
+        let andOperations = [];
+        let actual = "";
+        let openParentheses = 0;
+        let toPush = false;
+        for (let i = 0; i < expression.length; i++) {
+            actual += expression[i];
+            expression[i] === "(" ? openParentheses++ : '';
+            expression[i] === ")" ? openParentheses-- : '';
+            if (expression[i] === "¬" || openParentheses > 0) {
+                continue;
+            }
+            if (actual[0].match(/[v^]/g) && actual[1]) {
+                toPush = true;
+            }
+            if (((_a = expression[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && expression[i - 1] === "¬" && ((_b = expression[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
+                toPush = true;
+            }
+            if (splitOperation(actual).length === 3) {
+                toPush = true;
+            }
+            if (toPush === true) {
+                const operations = splitOperation(actual);
+                if (operations[1] === "^") {
+                    andOperations.push(actual);
+                    actual = "";
+                }
+                else {
+                    actual = operations[operations.length - 1];
+                }
+                toPush = false;
+            }
+        }
+        let charsToSkip = 0;
+        for (let i = 0; i < andOperations.length; i++) {
+            const beginIndex = expression.indexOf(andOperations[i]) + charsToSkip;
+            const endIndex = andOperations[i].length + beginIndex + 1;
+            newExpression.splice(beginIndex, 0, "(");
+            newExpression.splice(endIndex, 0, ")");
+            newExpression = newExpression.join("").replace(andOperations[i], invertExpression(andOperations[i])).split("");
+            charsToSkip += 2;
+        }
+        if (toReturn === "newExpression") {
+            return newExpression;
+        }
+        if (toReturn === "operations") {
+            return andOperations;
+        }
     }
     function takeLetters() {
         let letters = [];
@@ -133,23 +186,25 @@ function run() {
         let actual = "";
         let openParentheses = 0;
         let toPush = false;
-        for (let i = 0; i < expression.length; i++) {
-            actual += expression[i];
-            expression[i] === "(" ? openParentheses++ : '';
-            expression[i] === ")" ? openParentheses-- : '';
-            if (expression[i] === "¬" || openParentheses > 0) {
+        let newExpression = TakeAndOperations(expression, "newExpression");
+        let andOperations = TakeAndOperations(expression, "operations");
+        andOperations.map((operation) => {
+            allOperations.push(invertExpression(operation));
+        });
+        for (let i = 0; i < newExpression.length; i++) {
+            actual += newExpression[i];
+            newExpression[i] === "(" ? openParentheses++ : '';
+            newExpression[i] === ")" ? openParentheses-- : '';
+            if (newExpression[i] === "¬" || openParentheses > 0) {
                 continue;
             }
             if (actual[0].match(/[v^]/g) && actual[1]) {
                 toPush = true;
             }
-            if (((_a = expression[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && expression[i - 1] === "¬" && ((_b = expression[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
+            if (((_a = newExpression[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && newExpression[i - 1] === "¬" && ((_b = newExpression[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
                 toPush = true;
             }
-            if (actual.indexOf("(") === -1 && splitOperation(actual).length === 3) {
-                toPush = true;
-            }
-            if (actual.indexOf("(") > -1 && splitOperation(actual).length === 3) {
+            if (splitOperation(actual).length === 3) {
                 toPush = true;
             }
             if (toPush === true) {
@@ -253,9 +308,20 @@ function run() {
             if (operation[operation.length - 1].match(/[v^]/g)) {
                 operation = operation + "(" + truthTable[truthTable.length - 1][0] + ")";
             }
-            let actual = [operation, []];
             let operationArray = splitOperation(operation);
-            const [firstVar, operator, secondVar] = operationArray;
+            let [firstVar, operator, secondVar] = operationArray;
+            let operationToDisplay = operationArray;
+            if (firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")") {
+                if (!parenthesesExp.includes(firstVar.slice(1, -1))) {
+                    operationToDisplay[0] = firstVar.slice(1, -1);
+                }
+            }
+            if (secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")") {
+                if (!parenthesesExp.includes(secondVar.slice(1, -1))) {
+                    operationToDisplay[2] = secondVar.slice(1, -1);
+                }
+            }
+            let actual = [operationToDisplay.join(""), []];
             let firstVarValues = getValuesTruthTable(firstVar, truthTable);
             let secondVarValues = getValuesTruthTable(secondVar, truthTable);
             for (let i = 0; i < cases; i++) {
