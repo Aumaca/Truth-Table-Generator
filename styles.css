@@ -87,6 +87,10 @@ table,
     color: #D2042D;
 }
 
+.truth-table-category .contingency {
+    color: #69544D;
+}
+
 table {
     color: black;
     border-radius: 5px 5px 0px 0px;

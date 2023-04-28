@@ -438,12 +438,12 @@ function run(): void {
 
             let operationToDisplay: string[] = operationArray;
             if (firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")") {
-                if (!parenthesesExp.includes(firstVar.slice(1, -1))) {
+                if (!parenthesesExp.includes(firstVar)) {
                     operationToDisplay[0] = firstVar.slice(1, -1)
                 }
             }
             if (secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")") {
-                if (!parenthesesExp.includes(secondVar.slice(1, -1))) {
+                if (!parenthesesExp.includes(secondVar)) {
                     operationToDisplay[2] = secondVar.slice(1, -1)
                 }
             }
@@ -559,13 +559,21 @@ function run(): void {
 
         // To display if expression results in a Tautology or Contradiction
         const paragraph: HTMLParagraphElement = document.createElement("h4");
-        if (truthTable[truthTable.length - 1][1].every((bool) => bool === true)) {
+        const lastColumnBooleanValues: boolean[] = truthTable[truthTable.length - 1][1];
+        if (lastColumnBooleanValues.every((bool) => bool === true)) {
             paragraph.textContent = "Tautology";
             paragraph.className = "tautology";
         } else {
-            paragraph.textContent = "Contradiction";
-            paragraph.className = "contradiction";
+            if (lastColumnBooleanValues.every((bool) => bool === false)) {
+                paragraph.textContent = "Contradiction";
+                paragraph.className = "contradiction";
+            } else {
+                paragraph.textContent = "Contingency";
+                paragraph.className = "contingency";
+            }
         }
+
+        
         truthTableCategoryDiv.appendChild(paragraph);
 
         setTimeout(() => {
