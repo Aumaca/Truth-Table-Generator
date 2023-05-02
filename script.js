@@ -18,6 +18,8 @@ function run() {
     const parenthesesExp = takeParenthesesExpressions(expressionNoSpace);
     const notParenthesesExp = parenthesesExp.filter(exp => exp[0] === "¬");
     const allOperations = takeOperations(invertedExpressionNoSpace);
+    console.log("Inverted expression: ");
+    console.log(invertedExpressionNoSpace);
     console.log("Letters: ");
     console.log(letters);
     console.log("Not Letters: ");
@@ -63,7 +65,7 @@ function run() {
             if (expression[i] === ")") {
                 openParentheses--;
             }
-            if (["¬", "-", ">"].includes(expression[i]) || expression[i + 1] === "-") {
+            if (["¬", "-"].includes(expression[i])) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -124,6 +126,30 @@ function run() {
             return andOperations;
         }
     }
+    function takeConditionals(exp) {
+        let newExp = invertExpression(exp.join("")).split("");
+        let conditionals = [];
+        let condIndexs = [];
+        let openParentheses = 0;
+        newExp.map((x, i) => {
+            x === "(" ? openParentheses++ : "";
+            x === ")" ? openParentheses-- : "";
+            x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
+        });
+        let cuttedOpLength = 0;
+        for (let i = 0; i < condIndexs.length; i++) {
+            let actualCondIndex = condIndexs[i] - cuttedOpLength;
+            const leftOp = newExp.slice(0, actualCondIndex - 1).join("");
+            const rightOp = newExp.slice(actualCondIndex + 1).join("");
+            cuttedOpLength += leftOp.length + 2;
+            let actual = `(${leftOp})->(${rightOp})`;
+            conditionals.unshift(actual);
+            newExp = newExp.slice(actualCondIndex + 1);
+        }
+        console.log("conditionals: ");
+        console.log(conditionals);
+        return conditionals;
+    }
     function takeLetters() {
         let letters = [];
         for (let i = 0; i < expressionNoSpace.length; i++) {
@@ -180,46 +206,87 @@ function run() {
         }
         return parenthesesExpressions;
     }
+    function removeSomeOperators(expression) {
+        let newExp = [];
+        if (!expression.includes("-") && !expression.includes("=")) {
+            console.log("ue");
+            return expression;
+        }
+        expression = invertExpression(expression.join("")).split("");
+        let condIndexs = [];
+        let openParentheses = 0;
+        expression.map((x, i) => {
+            x === "(" ? openParentheses++ : "";
+            x === ")" ? openParentheses-- : "";
+            x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
+        });
+        let cuttedOpLength = 0;
+        condIndexs.map((i) => {
+            i -= cuttedOpLength;
+            let toPushExp = expression.slice(0, i - 1).join("");
+            newExp.push(invertExpression(toPushExp));
+            cuttedOpLength += toPushExp.length + 2;
+            expression = expression.slice(i + 1);
+        });
+        console.log("newExpRemove: ");
+        console.log(newExp);
+        return newExp;
+    }
     function takeOperations(expression) {
-        var _a, _b;
         let allOperations = [];
         let actual = "";
         let openParentheses = 0;
         let toPush = false;
         let newExpression = TakeAndOperations(expression, "newExpression");
         let andOperations = TakeAndOperations(expression, "operations");
+        let localConditionalOperations = takeConditionals(expression.split(""));
         andOperations.map((operation) => {
             allOperations.push(invertExpression(operation));
         });
-        for (let i = 0; i < newExpression.length; i++) {
-            actual += newExpression[i];
-            newExpression[i] === "(" ? openParentheses++ : '';
-            newExpression[i] === ")" ? openParentheses-- : '';
-            if (newExpression[i] === "¬" || openParentheses > 0) {
-                continue;
-            }
-            if (actual[0].match(/[v^]/g) && actual[1]) {
-                toPush = true;
-            }
-            if (((_a = newExpression[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && newExpression[i - 1] === "¬" && ((_b = newExpression[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
-                toPush = true;
-            }
-            if (splitOperation(actual).length === 3) {
-                toPush = true;
-            }
-            if (toPush === true) {
-                if (actual[0].match(/[v^]/g)) {
-                    let operator = actual[0];
-                    let newActual = actual.slice(actual.indexOf(operator) + 1);
-                    actual = newActual + operator;
+        if (newExpression.includes("-")) {
+            newExpression = removeSomeOperators(newExpression);
+            newExpression.map((exp) => {
+                makeOp(exp.split(""));
+            });
+        }
+        else {
+            makeOp(newExpression);
+        }
+        localConditionalOperations.map((operation) => {
+            allOperations.push(operation);
+        });
+        function makeOp(expression) {
+            var _a, _b;
+            for (let i = 0; i < expression.length; i++) {
+                actual += expression[i];
+                expression[i] === "(" ? openParentheses++ : '';
+                expression[i] === ")" ? openParentheses-- : '';
+                if (expression[i] === "¬" || openParentheses > 0) {
+                    continue;
                 }
-                else {
-                    const operations = splitOperation(actual);
-                    actual = operations[2] + operations[1] + operations[0];
+                if (actual[0].match(/[v^]/g) && actual[1]) {
+                    toPush = true;
                 }
-                allOperations.push(actual);
-                toPush = false;
-                actual = "";
+                if (((_a = expression[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && expression[i - 1] === "¬" && ((_b = expression[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
+                    toPush = true;
+                }
+                if (splitOperation(actual).length === 3) {
+                    toPush = true;
+                }
+                if (toPush === true) {
+                    if (actual[0].match(/[v^]/g)) {
+                        let operator = actual[0];
+                        let newActual = actual.slice(actual.indexOf(operator) + 1);
+                        actual = newActual + operator;
+                    }
+                    else {
+                        const operations = splitOperation(actual);
+                        actual = operations[2] + operations[1] + operations[0];
+                    }
+                    toPush = false;
+                    allOperations.push(actual);
+                    actual = "";
+                }
             }
         }
         return allOperations;
@@ -313,12 +380,12 @@ function run() {
             let operationToDisplay = operationArray;
             if (firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")") {
                 if (!parenthesesExp.includes(firstVar)) {
-                    operationToDisplay[0] = firstVar.slice(1, -1);
+                    operationToDisplay[0] = firstVar = firstVar.slice(1, -1);
                 }
             }
             if (secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")") {
                 if (!parenthesesExp.includes(secondVar)) {
-                    operationToDisplay[2] = secondVar.slice(1, -1);
+                    operationToDisplay[2] = secondVar = secondVar.slice(1, -1);
                 }
             }
             let actual = [operationToDisplay.join(""), []];
@@ -342,6 +409,14 @@ function run() {
                         actualValueCase = false;
                     }
                 }
+                if (operator === '->') {
+                    if (firstVarValues[i] === true && secondVarValues[i] === false) {
+                        actualValueCase = false;
+                    }
+                    else {
+                        actualValueCase = true;
+                    }
+                }
                 actual[1].push(actualValueCase);
             }
             truthTable.push(actual);
@@ -355,7 +430,7 @@ function run() {
             operation[i] === "(" ? openParentheses++ : "";
             operation[i] === ")" ? openParentheses-- : "";
             actual += operation[i];
-            if (operation[i] === "¬" || openParentheses > 0) {
+            if (["¬", "<", "-"].includes(operation[i]) || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actual);

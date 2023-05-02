@@ -44,6 +44,8 @@ function run(): void {
     const parenthesesExp: string[] = takeParenthesesExpressions(expressionNoSpace);
     const notParenthesesExp: string[] = parenthesesExp.filter(exp => exp[0] === "¬"); // For tests purpose
     const allOperations: string[] = takeOperations(invertedExpressionNoSpace);
+    console.log("Inverted expression: ");
+    console.log(invertedExpressionNoSpace);
     console.log("Letters: ");
     console.log(letters);
     console.log("Not Letters: ");
@@ -85,6 +87,8 @@ function run(): void {
 
     /**
      * Returns the inverted expression of an given expression.
+     * Operations within parentheses are not inverted.
+     * Conditional operator "->" isn't inverted to ">-".
      * @param expression
      */
     function invertExpression(expression: string): string {
@@ -101,7 +105,7 @@ function run(): void {
                 openParentheses--;
             }
             // Detects if next char is "-" indicating "->"
-            if (["¬", "-", ">"].includes(expression[i]) || expression[i + 1] === "-") {
+            if (["¬", "-"].includes(expression[i])) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -130,7 +134,7 @@ function run(): void {
             actual += expression[i];
             expression[i] === "(" ? openParentheses++ : '';
             expression[i] === ")" ? openParentheses-- : '';
-            
+
             if (expression[i] === "¬" || openParentheses > 0) {
                 continue;
             }
@@ -181,6 +185,37 @@ function run(): void {
         if (toReturn === "operations") {
             return andOperations;
         }
+    }
+
+    /**
+     * Return a array containing conditional operations.
+     * @param expression - Inverted expression.
+     */
+    function takeConditionals(exp: string[]): string[] {
+        let newExp: string[] = invertExpression(exp.join("")).split("");
+        let conditionals: string[] = [];
+        let condIndexs: number[] = [];
+
+        let openParentheses: number = 0;
+        newExp.map((x, i) => {
+            x === "(" ? openParentheses++ : "";
+            x === ")" ? openParentheses-- : "";
+            x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
+        });
+
+        let cuttedOpLength: number = 0;
+        for (let i = 0; i < condIndexs.length; i++) {
+            let actualCondIndex: number = condIndexs[i] - cuttedOpLength;
+            const leftOp: string = newExp.slice(0, actualCondIndex - 1).join("");
+            const rightOp: string = newExp.slice(actualCondIndex + 1).join("");
+            cuttedOpLength += leftOp.length + 2; // +2 due the operator "->"
+            let actual: string = `(${leftOp})->(${rightOp})`;
+            conditionals.unshift(actual);
+            newExp = newExp.slice(actualCondIndex + 1);
+        }
+        console.log("conditionals: ");
+        console.log(conditionals);
+        return conditionals;
     }
 
     /**
@@ -256,61 +291,130 @@ function run(): void {
         return parenthesesExpressions;
     }
 
-    // Returns array with separated operations from expression.
+    /**
+     * To remove operators like "->", "<->", "=", to take operations more easily.
+     * Removing them result in an array with separate operations that will be handled by the takeOperations().
+     * @param expression - Inverted expression.
+     */
+    function removeSomeOperators(expression: string[]): string[] {
+        let newExp: string[] = [];
+
+        if (!expression.includes("-") && !expression.includes("=")) {
+            console.log("ue");
+            return expression;
+        }
+
+        // Invert to normal the expression from argument.
+        expression = invertExpression(expression.join("")).split("");
+        let condIndexs: number[] = [];
+
+        let openParentheses: number = 0;
+
+        expression.map((x, i) => {
+            x === "(" ? openParentheses++ : "";
+            x === ")" ? openParentheses-- : "";
+            x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
+        });
+        
+        let cuttedOpLength: number = 0;
+        condIndexs.map((i) => {
+            i -= cuttedOpLength;
+            let toPushExp: string = expression.slice(0, i - 1).join("");
+            newExp.push(invertExpression(toPushExp));
+            cuttedOpLength += toPushExp.length + 2;
+            expression = expression.slice(i + 1);
+        });
+
+        console.log("newExpRemove: ");
+        console.log(newExp);
+
+        return newExp;
+    }
+
+    /**
+     * Returns array with separated operations from expression.
+     * @param expression - Inverted expression
+     */
     function takeOperations(expression: string): string[] {
         let allOperations: string[] = [];
         let actual: string = "";
         let openParentheses: number = 0;
         let toPush: boolean = false;
-        let newExpression: string[] = TakeAndOperations(expression, "newExpression"); // Returns newExpression string (with AND operations surrounded by parentheses)
-        let andOperations: string[] = TakeAndOperations(expression, "operations");// Returns operations with ^ in array.
+
+        // New expression in which AND operations are surrounded by parentheses.
+        let newExpression: string[] = TakeAndOperations(expression, "newExpression");
+
+        // Array with only AND operations
+        let andOperations: string[] = TakeAndOperations(expression, "operations");
+
+        // Array with only CONDITIONAL operations
+        let localConditionalOperations: string[] = takeConditionals(expression.split(""));
+
+        // Adds AND operations first
         andOperations.map((operation) => {
             allOperations.push(invertExpression(operation));
         });
-        for (let i = 0; i < newExpression.length; i++) {
 
-            actual += newExpression[i];
+        // If expression has operators as "-", "=" and etc, get array with operations separated in array.
+        if (newExpression.includes("-")) {
+            newExpression = removeSomeOperators(newExpression);
+            newExpression.map((exp) => {
+                makeOp(exp.split(""));
+            })
+        } else {
+            makeOp(newExpression);
+        }
 
-            // To track parentheses
-            newExpression[i] === "(" ? openParentheses++ : '';
-            newExpression[i] === ")" ? openParentheses-- : '';
+        // Add in the end the CONDITIONAL operations
+        localConditionalOperations.map((operation) => {
+            allOperations.push(operation);
+        });
 
-            // To check "¬" or remaining operation
-            if (newExpression[i] === "¬" || openParentheses > 0) {
-                continue;
-            }
+        function makeOp(expression: string[]): void {
+            for (let i = 0; i < expression.length; i++) {
+                actual += expression[i];
 
-            // For expressions that begins with a operator
-            if (actual[0].match(/[v^]/g) && actual[1]) {
-                toPush = true;
-            }
+                // To track parentheses
+                expression[i] === "(" ? openParentheses++ : '';
+                expression[i] === ")" ? openParentheses-- : '';
 
-            // For simple expressions including the negation operator -> Av¬B
-            // 1 - There is a element operator 2 characters before
-            // 2 - Previous character is a negation operator
-            // 3 - Actual character is a uppercase letter
-            if (newExpression[i - 2]?.match(/[v^]/g) && newExpression[i - 1] === "¬" && newExpression[i]?.match(/[A-Z]/g)) {
-                toPush = true;
-            }
-
-            // For expression that form an operation
-            if (splitOperation(actual).length === 3) {
-                toPush = true;
-            }
-
-            if (toPush === true) {
-                // If begins with operator, move operator to the end.
-                if (actual[0].match(/[v^]/g)) {
-                    let operator: string = actual[0];
-                    let newActual: string = actual.slice(actual.indexOf(operator) + 1);
-                    actual = newActual + operator;
-                } else {
-                    const operations = splitOperation(actual);
-                    actual = operations[2] + operations[1] + operations[0];
+                // To check "¬" or remaining operation
+                if (expression[i] === "¬" || openParentheses > 0) {
+                    continue;
                 }
-                allOperations.push(actual);
-                toPush = false;
-                actual = "";
+
+                // For expressions that begins with a operator
+                if (actual[0].match(/[v^]/g) && actual[1]) {
+                    toPush = true;
+                }
+
+                // For simple expressions including the negation operator -> Av¬B
+                // 1 - There is a element operator 2 characters before
+                // 2 - Previous character is a negation operator
+                // 3 - Actual character is a uppercase letter
+                if (expression[i - 2]?.match(/[v^]/g) && expression[i - 1] === "¬" && expression[i]?.match(/[A-Z]/g)) {
+                    toPush = true;
+                }
+
+                // For expression that form an operation
+                if (splitOperation(actual).length === 3) {
+                    toPush = true;
+                }
+
+                if (toPush === true) {
+                    // If begins with operator, move operator to the end.
+                    if (actual[0].match(/[v^]/g)) {
+                        let operator: string = actual[0];
+                        let newActual: string = actual.slice(actual.indexOf(operator) + 1);
+                        actual = newActual + operator;
+                    } else {
+                        const operations = splitOperation(actual);
+                        actual = operations[2] + operations[1] + operations[0];
+                    }
+                    toPush = false;
+                    allOperations.push(actual);
+                    actual = "";
+                }
             }
         }
         return allOperations;
@@ -439,12 +543,12 @@ function run(): void {
             let operationToDisplay: string[] = operationArray;
             if (firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")") {
                 if (!parenthesesExp.includes(firstVar)) {
-                    operationToDisplay[0] = firstVar.slice(1, -1)
+                    operationToDisplay[0] = firstVar = firstVar.slice(1, -1);
                 }
             }
             if (secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")") {
                 if (!parenthesesExp.includes(secondVar)) {
-                    operationToDisplay[2] = secondVar.slice(1, -1)
+                    operationToDisplay[2] = secondVar = secondVar.slice(1, -1);
                 }
             }
 
@@ -467,6 +571,13 @@ function run(): void {
                         actualValueCase = false;
                     }
                 }
+                if (operator === '->') {
+                    if (firstVarValues[i] === true && secondVarValues[i] === false) {
+                        actualValueCase = false;
+                    } else {
+                        actualValueCase = true;
+                    }
+                }
                 actual[1].push(actualValueCase);
             }
             truthTable.push(actual);
@@ -486,7 +597,7 @@ function run(): void {
             operation[i] === "(" ? openParentheses++ : "";
             operation[i] === ")" ? openParentheses-- : "";
             actual += operation[i];
-            if (operation[i] === "¬" || openParentheses > 0) {
+            if (["¬", "<", "-"].includes(operation[i]) || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actual);
@@ -573,7 +684,7 @@ function run(): void {
             }
         }
 
-        
+
         truthTableCategoryDiv.appendChild(paragraph);
 
         setTimeout(() => {
