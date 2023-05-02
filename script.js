@@ -209,7 +209,6 @@ function run() {
     function removeSomeOperators(expression) {
         let newExp = [];
         if (!expression.includes("-") && !expression.includes("=")) {
-            console.log("ue");
             return expression;
         }
         expression = invertExpression(expression.join("")).split("");
@@ -224,12 +223,15 @@ function run() {
         condIndexs.map((i) => {
             i -= cuttedOpLength;
             let toPushExp = expression.slice(0, i - 1).join("");
-            newExp.push(invertExpression(toPushExp));
+            if (toPushExp.length > 1) {
+                newExp.push(invertExpression(toPushExp));
+            }
             cuttedOpLength += toPushExp.length + 2;
             expression = expression.slice(i + 1);
+            if (!expression.includes("-")) {
+                newExp.push(invertExpression(expression.join("")));
+            }
         });
-        console.log("newExpRemove: ");
-        console.log(newExp);
         return newExp;
     }
     function takeOperations(expression) {

@@ -298,36 +298,31 @@ function run(): void {
      */
     function removeSomeOperators(expression: string[]): string[] {
         let newExp: string[] = [];
-
         if (!expression.includes("-") && !expression.includes("=")) {
-            console.log("ue");
             return expression;
         }
-
         // Invert to normal the expression from argument.
         expression = invertExpression(expression.join("")).split("");
         let condIndexs: number[] = [];
-
         let openParentheses: number = 0;
-
         expression.map((x, i) => {
             x === "(" ? openParentheses++ : "";
             x === ")" ? openParentheses-- : "";
             x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
         });
-        
         let cuttedOpLength: number = 0;
         condIndexs.map((i) => {
             i -= cuttedOpLength;
             let toPushExp: string = expression.slice(0, i - 1).join("");
-            newExp.push(invertExpression(toPushExp));
+            if (toPushExp.length > 1) {
+                newExp.push(invertExpression(toPushExp));
+            }
             cuttedOpLength += toPushExp.length + 2;
             expression = expression.slice(i + 1);
+            if (!expression.includes("-")) {
+                newExp.push(invertExpression(expression.join("")));
+            }
         });
-
-        console.log("newExpRemove: ");
-        console.log(newExp);
-
         return newExp;
     }
 
