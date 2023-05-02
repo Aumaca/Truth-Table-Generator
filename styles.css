@@ -117,6 +117,7 @@ th,
 td {
     font-family: 'Comfortaa', cursive;
     padding: 10px 20px;
+    white-space: nowrap;
 }
 
 td.true {
