@@ -9,6 +9,7 @@ class Expression {
     public orOps: string[];
     public conditionalOps: string[];
     public operations: string[];
+    public allOps: string[];
 
     constructor(defaultExp: string) {
         this.defaultExp = defaultExp.replaceAll("!", "¬");
@@ -20,7 +21,8 @@ class Expression {
         this.newInvertedExp = this.surroundAndOps();
         this.orOps = this.getOps(this.newInvertedExp, "v");
         this.conditionalOps = this.getConditionalOps();
-        this.operations = [...this.letters, ...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps];
+        this.operations = [...this.andOps, ...this.orOps, ...this.conditionalOps]; // 
+        this.allOps = [...this.letters, ...this.parenthesesExpOps, ...this.operations,];
     }
 
     private invertExpression(defaultExp: string): string {
@@ -76,9 +78,13 @@ class Expression {
                     letters.push(actual);
                     actual = "";
                 }
-
-                if (actual.length === 2 && actual[0] === "¬" && actual[1].match(/[A-Za-z]/g)) {
-                    notLetters.push(actual.slice(1)); // Add without "¬"
+                else if (actual.length === 2 && actual[0] === "¬" && actual[1].match(/[A-Za-z]/g)) {
+                    if (!letters.includes(actual.slice(1))) {
+                        letters.push(actual.slice(1));
+                    }
+                    if (!notLetters.includes(actual.slice(1))) {
+                        notLetters.push(actual.slice(1));
+                    }
                     actual = "";
                 }
             }
@@ -119,9 +125,6 @@ class Expression {
 
     private getOpsFromParenthesesExp(): string[] {
         let allOps: string[] = [];
-        let andOps: string[] = [];
-        let orOps: string[] = [];
-        let conditionalOps: string[] = [];
         this.parenthesesExp.map((exp) => {
             let expOps: string[] = new Expression(exp).operations;
             expOps.map((exp) => {!allOps.includes(exp) ? allOps.push(exp) : ""});
@@ -243,6 +246,7 @@ class Expression {
         }
         console.log("conditionals: ");
         console.log(conditionals);
+        console.log("from " + this.defaultExp);
         return conditionals;
     }
 }
