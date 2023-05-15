@@ -54,30 +54,18 @@ class Expression {
     getLetters() {
         let letters = [];
         let notLetters = [];
-        let actual = "";
         for (let i = 0; i < this.defaultExp.length; i++) {
-            if (actual.length > 0) {
-                if (actual[0].match(/[A-Za-z]/g)) {
-                    letters.push(actual);
-                    actual = "";
+            if (this.defaultExp[i].match(/[A-Z]/)) {
+                if (!letters.includes(this.defaultExp[i])) {
+                    letters.push(this.defaultExp[i]);
                 }
-                else if (actual.length === 2 && actual[0] === "¬" && actual[1].match(/[A-Za-z]/g)) {
-                    if (!letters.includes(actual.slice(1))) {
-                        letters.push(actual.slice(1));
-                    }
-                    if (!notLetters.includes(actual.slice(1))) {
-                        notLetters.push(actual.slice(1));
-                    }
-                    actual = "";
+                if (this.defaultExp[i - 1] === "¬") {
+                    notLetters.push(this.defaultExp[i]);
                 }
-            }
-            if ((this.defaultExp[i] === "¬" && this.defaultExp[i + 1].match(/[A-Za-z]/g)) || this.defaultExp[i].match(/[A-Za-z]/g)) {
-                actual += this.defaultExp[i];
             }
         }
         letters = letters.sort();
         notLetters = notLetters.sort().map((x) => { return "¬" + x; });
-        console.log([...letters, ...notLetters]);
         return [...letters, ...notLetters];
     }
     getParenthesesExp() {
@@ -195,12 +183,9 @@ class Expression {
             conditionals.unshift(actual);
             newExp = newExp.slice(actualCondIndex + 1);
         }
-        console.log("conditionals: ");
-        console.log(conditionals);
-        console.log("from " + this.defaultExp);
         return conditionals;
     }
 }
-let exp = new Expression("A^B->C->!Z^(!A->!B)");
+let exp = new Expression("A^B->C");
 console.log(exp);
 //# sourceMappingURL=test.js.map
