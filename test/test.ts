@@ -9,7 +9,6 @@ class Expression {
     public orOps: string[];
     public conditionalOps: string[];
     public operations: string[];
-    public allOps: string[];
     public truthTable: [string, boolean[]][];
 
     constructor(defaultExp: string) {
@@ -22,8 +21,8 @@ class Expression {
         this.newInvertedExp = this.surroundAndOps();
         this.orOps = this.getOps(this.newInvertedExp, "v");
         this.conditionalOps = this.getConditionalOps();
-        this.operations = [...this.andOps, ...this.orOps, ...this.conditionalOps];
-        this.allOps = [...this.letters, ...this.parenthesesExpOps, ...this.operations,];
+        this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps];
+        this.truthTable = this.generateTruthTable();
     }
 
     private invertExpression(defaultExp: string): string {
@@ -235,8 +234,102 @@ class Expression {
         return conditionals;
     }
 
-    
+    private generateTruthTable(): [string, boolean[]][] {
+        let truthTable: [string, boolean[]][] = [];
+        const cases: number = 2 ** this.letters.length;
+
+        // To letters
+        for (let i = 0; i < this.letters.length; i++) {
+            const letter = this.letters[i];
+            let actual: [string, boolean[]] = [letter, []];
+
+            if (letter[0] === "¬") {
+                let letterValues: boolean[] = [];
+                truthTable.map((array) => {
+                    if (array[0] === letter[1]) {
+                        letterValues = array[1];
+                    }
+                });
+
+                letterValues.map((boolValue) => {
+                    if (boolValue === true) {
+                        actual[1].push(false);
+                    } else {
+                        actual[1].push(true);
+                    }
+                });
+                truthTable.push(actual)
+                continue;
+            }
+
+            if (i === 0) {
+                for (let i = 0; i < cases; i++) {
+                    if (i % 2 === 0) {
+                        actual[1].push(true);
+                    } else {
+                        actual[1].push(false);
+                    }
+                }
+            } else {
+                const maxTrack: number = (2 ** (i + 1)) / 2;
+                let actualTrack: number = 0;
+                let actualBool: boolean = true;
+                for (let i = 0; i < cases; i++) {
+                    if (actualTrack == maxTrack) {
+                        actualTrack = 0;
+                        actualBool = actualBool ? false : true;
+                    }
+                    actualTrack++;
+                    actual[1].push(actualBool);
+                }
+            }
+            truthTable.push(actual);
+        };
+
+        // To each operation
+        for (let i = 0; i < this.operations.length; i++) {
+            let actual: [string, boolean[]] = [this.operations[i], []];
+            let [firstVar, operator, secondVar] = this.splitOp(this.operations[i]);
+            firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")" ? firstVar = firstVar.slice(1, -1) : "";
+            secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")" ? secondVar = secondVar.slice(1, -1) : "";
+
+            let firstVarValues: boolean[] = [];
+            let secondVarValues: boolean[] = [];
+            truthTable.map((array) => {
+                if (array[0] === firstVar) {
+                    firstVarValues = array[1];
+                }
+                if (array[0] === secondVar) {
+                    secondVarValues = array[1];
+                }
+            });
+
+            if (operator === "v") {
+                for (let x = 0; x < cases; x++) {
+                    actual[1].push(firstVarValues[x] || secondVarValues[x]);
+                }
+            }
+            if (operator === "^") {
+                for (let x = 0; x < cases; x++) {
+                    let booleanValue: boolean = firstVarValues[x] && secondVarValues[x];
+                    actual[1].push(booleanValue);
+                }
+            }
+            if (operator === "->") {
+                for (let x = 0; x < cases; x++) {
+                    if (firstVarValues[x] === true && secondVarValues[x] === false) {
+                        actual[1].push(false);
+                    } else {
+                        actual[1].push(false);
+                    }
+                }
+            }
+            truthTable.push(actual);
+        }
+
+        return truthTable;
+    }
 }
 
-let exp = new Expression("A^B->C");
+let exp = new Expression("A^B->¬Cv!A");
 console.log(exp);
