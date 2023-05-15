@@ -7,7 +7,8 @@
 <p> -  I'm planning to first implement all operations (->, <->, =, v, ^, !) and after reduce the amount of code in smart ways.</p>
 <br>
 <h2>For now...</h2>
-<p> - The code is able to build truth tables using AND and OR operations.</p>
+<p> - The code is able to build truth tables performing AND, OR and CONDITIONAL operations.</p>
 <p> - The truth table begins from right to left to take the operations.</p>
-<p> - Parentheses and AND operations are taken and processed before the others.</p>
 <p> - Returns if the proposition is a Tautology, Contigency or Contradiction.</p>
+<p> - The code is being designed for OOP. I think it's getting more organized and easier to deal with.</p>
+<p> - (I'm not getting too much time to focus on this due my college and work, so I spending some few hours after midnight to code)</p>
