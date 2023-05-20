@@ -1,6 +1,6 @@
 class Expression {
     constructor(defaultExp) {
-        this.defaultExp = defaultExp.replaceAll("!", "¬");
+        this.defaultExp = defaultExp.replaceAll("!", "¬").replaceAll("=", "≡").replaceAll("<->", "≡");
         this.invertedExp = this.invertExpression(this.defaultExp);
         this.letters = this.getLetters();
         this.parenthesesExp = this.getParenthesesExp();
@@ -169,8 +169,8 @@ class Expression {
         let conditionals = [];
         let condIndexs = [];
         let expsToUse = [];
-        if (this.defaultExp.includes("<->")) {
-            this.defaultExp.split("<->").map((exp) => {
+        if (this.defaultExp.includes("≡")) {
+            this.defaultExp.split("≡").map((exp) => {
                 let openParentheses = 0;
                 exp.split("").map((char) => {
                     char === "(" ? openParentheses++ : "";
@@ -194,7 +194,7 @@ class Expression {
         for (let i = 0; i < newExp.length; i++) {
             newExp[i] === "(" ? openParentheses++ : "";
             newExp[i] === ")" ? openParentheses-- : "";
-            if (newExp[i] === ">" && newExp[i - 2] !== "<" && openParentheses === 0) {
+            if (newExp[i] === ">" && openParentheses === 0) {
                 condIndexs.push(i);
             }
         }
@@ -218,15 +218,15 @@ class Expression {
         newExp.map((x, i) => {
             x === "(" ? openParentheses++ : "";
             x === ")" ? openParentheses-- : "";
-            x === "<" && openParentheses === 0 ? operatorIndexs.push(i) : "";
+            x === "≡" && openParentheses === 0 ? operatorIndexs.push(i) : "";
         });
         let cuttedOpLength = 0;
         for (let i = 0; i < operatorIndexs.length; i++) {
             let actualEqOp = operatorIndexs[i] - cuttedOpLength;
             const leftOp = newExp.slice(0, actualEqOp).join("");
-            const rightOp = newExp.slice(actualEqOp + 3).join("");
-            cuttedOpLength += leftOp.length + 3;
-            let actual = `(${leftOp})<->(${rightOp})`;
+            const rightOp = newExp.slice(actualEqOp + 1).join("");
+            cuttedOpLength += leftOp.length + 1;
+            let actual = `(${leftOp})≡(${rightOp})`;
             equivalenceOps.unshift(actual);
             newExp = rightOp.split("");
         }

@@ -8,11 +8,12 @@ class Expression {
     public andOps: string[];
     public orOps: string[];
     public conditionalOps: string[];
+    public equivalenceOps: string[];
     public operations: string[];
     public truthTable: [string, boolean[]][];
 
     constructor(defaultExp: string) {
-        this.defaultExp = defaultExp.replaceAll("!", "¬");
+        this.defaultExp = defaultExp.replaceAll("!", "¬").replaceAll("=", "≡").replaceAll("<->", "≡");
         this.invertedExp = this.invertExpression(this.defaultExp);
         this.letters = this.getLetters();
         this.parenthesesExp = this.getParenthesesExp();
@@ -21,6 +22,7 @@ class Expression {
         this.newInvertedExp = this.surroundAndOps();
         this.orOps = this.getOps(this.newInvertedExp, "v");
         this.conditionalOps = this.getConditionalOps();
+        this.equivalenceOps = this.getEquivalenceOps();
         this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps];
         this.truthTable = this.generateTruthTable();
     }
@@ -39,7 +41,7 @@ class Expression {
                 openParentheses--;
             }
             // Detects if next char is "-" indicating "->"
-            if (["¬", "-"].includes(defaultExp[i])) {
+            if (["¬", "<", "-"].includes(defaultExp[i])) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -209,18 +211,50 @@ class Expression {
         return this.invertExpression(newExp.join(""));
     }
 
-    private getConditionalOps(): string[] {
+    public getConditionalOps(): string[] {
         let newExp: string[] = this.defaultExp.split("");
         let conditionals: string[] = [];
         let condIndexs: number[] = [];
+        
+        let expsToUse: string[] = [];
 
+        // Get ≡ indexs if they are in exp
+        if (this.defaultExp.includes("≡")) {
+            this.defaultExp.split("≡").map((exp) => {
+                let openParentheses: number = 0;
+                exp.split("").map((char) => {
+                    char === "(" ? openParentheses++ : "";
+                    char === ")" ? openParentheses-- : "";
+                });
+                if (openParentheses === 0) {
+                    expsToUse.push(exp);
+                }
+            });
+        }
+
+        // If there are exps taken from ≡ indexs
+        if (expsToUse.length > 0) {
+            expsToUse.map((exp) => {
+                let condOps: string[] = new Expression(exp).conditionalOps;
+                condOps.map((op) => {
+                    conditionals.push(op);
+                });
+            });
+            return conditionals;
+        }
+
+        // Get conditional indexs
         let openParentheses: number = 0;
-        newExp.map((x, i) => {
-            x === "(" ? openParentheses++ : "";
-            x === ")" ? openParentheses-- : "";
-            x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
-        });
+        for (let i = 0; i < newExp.length; i++) {
+            newExp[i] === "(" ? openParentheses++ : "";
+            newExp[i] === ")" ? openParentheses-- : "";
+            if (newExp[i] === ">" && openParentheses === 0) {
+                condIndexs.push(i);
+            }
+        }
 
+        // Get conditional ops from -> indexs
+        // At each unshift, the newExp remove the left op.
         let cuttedOpLength: number = 0;
         for (let i = 0; i < condIndexs.length; i++) {
             let actualCondIndex: number = condIndexs[i] - cuttedOpLength;
@@ -232,6 +266,31 @@ class Expression {
             newExp = newExp.slice(actualCondIndex + 1);
         }
         return conditionals;
+    }
+
+    private getEquivalenceOps(): string[] {
+        let newExp: string[] = this.defaultExp.split("");
+        let equivalenceOps: string[] = [];
+        let operatorIndexs: number[] = [];
+
+        let openParentheses: number = 0;
+        newExp.map((x, i) => {
+            x === "(" ? openParentheses++ : "";
+            x === ")" ? openParentheses-- : "";
+            x === "≡" && openParentheses === 0 ? operatorIndexs.push(i) : "";
+        });
+
+        let cuttedOpLength: number = 0;
+        for (let i = 0; i < operatorIndexs.length; i++) {
+            let actualEqOp: number = operatorIndexs[i] - cuttedOpLength;
+            const leftOp: string = newExp.slice(0, actualEqOp).join("");
+            const rightOp: string = newExp.slice(actualEqOp + 1).join("");
+            cuttedOpLength += leftOp.length + 1;
+            let actual: string = `(${leftOp})≡(${rightOp})`;
+            equivalenceOps.unshift(actual);
+            newExp = rightOp.split("");
+        }
+        return equivalenceOps;
     }
 
     private generateTruthTable(): [string, boolean[]][] {
@@ -246,7 +305,7 @@ class Expression {
         for (let i = 0; i < this.letters.length; i++) {
             const letter = this.letters[i];
             let actual: [string, boolean[]] = [letter, []];
-            
+
             if (letter[0] === "¬") {
                 let letterValues: boolean[] = [];
                 truthTable.map((array) => {
@@ -335,5 +394,5 @@ class Expression {
     }
 }
 
-let exp = new Expression("A^B->¬Cv!A");
+let exp = new Expression("A^B->!B<->!A<->B");
 console.log(exp);
