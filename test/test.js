@@ -9,6 +9,7 @@ class Expression {
         this.newInvertedExp = this.surroundAndOps();
         this.orOps = this.getOps(this.newInvertedExp, "v");
         this.conditionalOps = this.getConditionalOps();
+        this.equivalenceOps = this.getEquivalenceOps();
         this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps];
         this.truthTable = this.generateTruthTable();
     }
@@ -25,7 +26,7 @@ class Expression {
             if (defaultExp[i] === ")") {
                 openParentheses--;
             }
-            if (["¬", "-"].includes(defaultExp[i])) {
+            if (["¬", "<", "-"].includes(defaultExp[i])) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -167,12 +168,36 @@ class Expression {
         let newExp = this.defaultExp.split("");
         let conditionals = [];
         let condIndexs = [];
+        let expsToUse = [];
+        if (this.defaultExp.includes("<->")) {
+            this.defaultExp.split("<->").map((exp) => {
+                let openParentheses = 0;
+                exp.split("").map((char) => {
+                    char === "(" ? openParentheses++ : "";
+                    char === ")" ? openParentheses-- : "";
+                });
+                if (openParentheses === 0) {
+                    expsToUse.push(exp);
+                }
+            });
+        }
+        if (expsToUse.length > 0) {
+            expsToUse.map((exp) => {
+                let condOps = new Expression(exp).conditionalOps;
+                condOps.map((op) => {
+                    conditionals.push(op);
+                });
+            });
+            return conditionals;
+        }
         let openParentheses = 0;
-        newExp.map((x, i) => {
-            x === "(" ? openParentheses++ : "";
-            x === ")" ? openParentheses-- : "";
-            x === ">" && openParentheses === 0 ? condIndexs.push(i) : "";
-        });
+        for (let i = 0; i < newExp.length; i++) {
+            newExp[i] === "(" ? openParentheses++ : "";
+            newExp[i] === ")" ? openParentheses-- : "";
+            if (newExp[i] === ">" && newExp[i - 2] !== "<" && openParentheses === 0) {
+                condIndexs.push(i);
+            }
+        }
         let cuttedOpLength = 0;
         for (let i = 0; i < condIndexs.length; i++) {
             let actualCondIndex = condIndexs[i] - cuttedOpLength;
@@ -184,6 +209,28 @@ class Expression {
             newExp = newExp.slice(actualCondIndex + 1);
         }
         return conditionals;
+    }
+    getEquivalenceOps() {
+        let newExp = this.defaultExp.split("");
+        let equivalenceOps = [];
+        let operatorIndexs = [];
+        let openParentheses = 0;
+        newExp.map((x, i) => {
+            x === "(" ? openParentheses++ : "";
+            x === ")" ? openParentheses-- : "";
+            x === "<" && openParentheses === 0 ? operatorIndexs.push(i) : "";
+        });
+        let cuttedOpLength = 0;
+        for (let i = 0; i < operatorIndexs.length; i++) {
+            let actualEqOp = operatorIndexs[i] - cuttedOpLength;
+            const leftOp = newExp.slice(0, actualEqOp).join("");
+            const rightOp = newExp.slice(actualEqOp + 3).join("");
+            cuttedOpLength += leftOp.length + 3;
+            let actual = `(${leftOp})<->(${rightOp})`;
+            equivalenceOps.unshift(actual);
+            newExp = rightOp.split("");
+        }
+        return equivalenceOps;
     }
     generateTruthTable() {
         let truthTable = [];
@@ -280,6 +327,6 @@ class Expression {
         return truthTable;
     }
 }
-let exp = new Expression("A^B->¬Cv!A");
-console.log(exp.truthTable[0]);
+let exp = new Expression("A^B->!B<->!A<->B");
+console.log(exp);
 //# sourceMappingURL=test.js.map
