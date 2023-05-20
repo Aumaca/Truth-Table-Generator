@@ -236,13 +236,17 @@ class Expression {
 
     private generateTruthTable(): [string, boolean[]][] {
         let truthTable: [string, boolean[]][] = [];
-        const cases: number = 2 ** this.letters.length;
+        let onlyLetters: number = 0;
+        this.letters.map((letter) => {
+            letter[0] !== "¬" ? onlyLetters++ : "";
+        });
+        const cases: number = 2 ** onlyLetters;
 
         // To letters
         for (let i = 0; i < this.letters.length; i++) {
             const letter = this.letters[i];
             let actual: [string, boolean[]] = [letter, []];
-
+            
             if (letter[0] === "¬") {
                 let letterValues: boolean[] = [];
                 truthTable.map((array) => {

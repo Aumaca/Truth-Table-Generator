@@ -187,7 +187,11 @@ class Expression {
     }
     generateTruthTable() {
         let truthTable = [];
-        const cases = Math.pow(2, this.letters.length);
+        let onlyLetters = 0;
+        this.letters.map((letter) => {
+            letter[0] !== "¬" ? onlyLetters++ : "";
+        });
+        const cases = Math.pow(2, onlyLetters);
         for (let i = 0; i < this.letters.length; i++) {
             const letter = this.letters[i];
             let actual = [letter, []];
@@ -277,5 +281,5 @@ class Expression {
     }
 }
 let exp = new Expression("A^B->¬Cv!A");
-console.log(exp);
+console.log(exp.truthTable[0]);
 //# sourceMappingURL=test.js.map
