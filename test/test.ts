@@ -9,6 +9,7 @@ class Expression {
     public orOps: string[];
     public conditionalOps: string[];
     public equivalenceOps: string[];
+    public cases: number;
     public operations: string[];
     public truthTable: [string, boolean[]][];
 
@@ -23,8 +24,17 @@ class Expression {
         this.orOps = this.getOps(this.newInvertedExp, "∨");
         this.conditionalOps = this.getConditionalOps();
         this.equivalenceOps = this.getEquivalenceOps();
+        this.cases = this.getCases();
         this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps, ...this.equivalenceOps];
         this.truthTable = this.generateTruthTable();
+    }
+
+    private getCases(): number {
+        let onlyLetters: number = 0;
+        this.letters.map((letter) => {
+            letter[0] !== "¬" ? onlyLetters++ : "";
+        });
+        return onlyLetters;
     }
 
     private invertExpression(defaultExp: string): string {
@@ -294,11 +304,6 @@ class Expression {
 
     private generateTruthTable(): [string, boolean[]][] {
         let truthTable: [string, boolean[]][] = [];
-        let onlyLetters: number = 0;
-        this.letters.map((letter) => {
-            letter[0] !== "¬" ? onlyLetters++ : "";
-        });
-        const cases: number = 2 ** onlyLetters;
 
         // To letters
         for (let i = 0; i < this.letters.length; i++) {
@@ -325,7 +330,7 @@ class Expression {
             }
 
             if (i === 0) {
-                for (let i = 0; i < cases; i++) {
+                for (let i = 0; i < this.cases; i++) {
                     if (i % 2 === 0) {
                         actual[1].push(true);
                     } else {
@@ -336,7 +341,7 @@ class Expression {
                 const maxTrack: number = (2 ** (i + 1)) / 2;
                 let actualTrack: number = 0;
                 let actualBool: boolean = true;
-                for (let i = 0; i < cases; i++) {
+                for (let i = 0; i < this.cases; i++) {
                     if (actualTrack == maxTrack) {
                         actualTrack = 0;
                         actualBool = actualBool ? false : true;
@@ -369,18 +374,18 @@ class Expression {
 
             // Generate boolean values
             if (operator === "∨") {
-                for (let x = 0; x < cases; x++) {
+                for (let x = 0; x < this.cases; x++) {
                     actual[1].push(firstVarValues[x] || secondVarValues[x]);
                 }
             }
             if (operator === "∧") {
-                for (let x = 0; x < cases; x++) {
+                for (let x = 0; x < this.cases; x++) {
                     let booleanValue: boolean = firstVarValues[x] && secondVarValues[x];
                     actual[1].push(booleanValue);
                 }
             }
             if (operator === "⇒") {
-                for (let x = 0; x < cases; x++) {
+                for (let x = 0; x < this.cases; x++) {
                     if (firstVarValues[x] === true && secondVarValues[x] === false) {
                         actual[1].push(false);
                     } else {
@@ -389,7 +394,7 @@ class Expression {
                 }
             }
             if (operator === "≡") {
-                for (let x = 0; x < cases; x++) {
+                for (let x = 0; x < this.cases; x++) {
                     if ((firstVarValues[x] === true && secondVarValues[x] === true) || (firstVarValues[x] === false && secondVarValues[x] === false)) {
                         actual[1].push(true);
                     } else {
@@ -413,5 +418,3 @@ class Expression {
 }
 
 let exp = new Expression("A^B->!B<->!A<->B");
-console.log(exp);
-console.log(exp.truthTable[exp.truthTable.length - 1]);

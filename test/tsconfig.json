@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "removeComments": true,
+        "target": "es6",
+        "sourceMap": true,
+        "lib": ["ES2022", "dom"],
+        "module": "CommonJS",
+    },
+}
