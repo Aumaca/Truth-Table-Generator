@@ -267,8 +267,10 @@ class Expression {
         let cuttedOpLength: number = 0;
         for (let i = 0; i < condIndexs.length; i++) {
             let actualCondIndex: number = condIndexs[i] - cuttedOpLength;
-            const leftOp: string = newExp.slice(0, actualCondIndex).join("");
-            const rightOp: string = newExp.slice(actualCondIndex + 1).join("");
+            let leftOp: string = newExp.slice(0, actualCondIndex).join("");
+            let rightOp: string = newExp.slice(actualCondIndex + 1).join("");
+            leftOp[0] === "(" && leftOp[leftOp.length - 1] === ")" ? leftOp = leftOp.slice(1, -1) : "";
+            rightOp[0] === "(" && rightOp[rightOp.length - 1] === ")" ? rightOp = rightOp.slice(1, -1) : "";
             cuttedOpLength += leftOp.length + 1;
             let actual: string = `(${leftOp})⇒(${rightOp})`;
             conditionals.unshift(actual);
@@ -292,8 +294,10 @@ class Expression {
         let cuttedOpLength: number = 0;
         for (let i = 0; i < operatorIndexs.length; i++) {
             let actualEqOp: number = operatorIndexs[i] - cuttedOpLength;
-            const leftOp: string = newExp.slice(0, actualEqOp).join("");
-            const rightOp: string = newExp.slice(actualEqOp + 1).join("");
+            let leftOp: string = newExp.slice(0, actualEqOp).join("");
+            let rightOp: string = newExp.slice(actualEqOp + 1).join("");
+            leftOp[0] === "(" && leftOp[leftOp.length - 1] === ")" ? leftOp = leftOp.slice(1, -1) : "";
+            rightOp[0] === "(" && rightOp[rightOp.length - 1] === ")" ? rightOp = rightOp.slice(1, -1) : "";
             cuttedOpLength += leftOp.length + 1;
             let actual: string = `(${leftOp})≡(${rightOp})`;
             equivalenceOps.unshift(actual);

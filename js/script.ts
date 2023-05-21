@@ -137,10 +137,12 @@ class Expression {
         let openParentheses: number = 0;
         let toPush: boolean = false;
         let pushed: boolean = false;
+                                              
+        console.log("actual operator: " + operator);
 
         for (let i = 0; i < exp.length; i++) {
-
             actualOp += exp[i];
+            console.log(actualOp);
             exp[i] === "(" ? openParentheses++ : '';
             exp[i] === ")" ? openParentheses-- : '';
 
@@ -205,6 +207,9 @@ class Expression {
      */
     private surroundAndOps(): string {
         let newExp: string[] = this.defaultExp.split("");
+        if (newExp[0] === "(" && newExp[newExp.length - 1] === ")") {
+            return this.defaultExp;
+        }
         let orderedAndOps: string[] = this.andOps.reverse();
         let charsToSkip: number = 0;
         for (let i = 0; i < orderedAndOps.length; i++) {
@@ -213,9 +218,6 @@ class Expression {
             newExp.splice(beginIndex, 0, "(");
             newExp.splice(endIndex, 0, ")");
             charsToSkip += 2;
-        }
-        if (newExp[0] === "(" && newExp[newExp.length - 1] === ")") {
-            return this.defaultExp;
         }
         return this.invertExpression(newExp.join(""));
     }
@@ -267,8 +269,10 @@ class Expression {
         let cuttedOpLength: number = 0;
         for (let i = 0; i < condIndexs.length; i++) {
             let actualCondIndex: number = condIndexs[i] - cuttedOpLength;
-            const leftOp: string = newExp.slice(0, actualCondIndex).join("");
-            const rightOp: string = newExp.slice(actualCondIndex + 1).join("");
+            let leftOp: string = newExp.slice(0, actualCondIndex).join("");
+            let rightOp: string = newExp.slice(actualCondIndex + 1).join("");
+            leftOp[0] === "(" && leftOp[leftOp.length - 1] === ")" ? leftOp = leftOp.slice(1, -1) : "";
+            rightOp[0] === "(" && rightOp[rightOp.length - 1] === ")" ? rightOp = rightOp.slice(1, -1) : "";
             cuttedOpLength += leftOp.length + 1;
             let actual: string = `(${leftOp})⇒(${rightOp})`;
             conditionals.unshift(actual);
@@ -292,8 +296,10 @@ class Expression {
         let cuttedOpLength: number = 0;
         for (let i = 0; i < operatorIndexs.length; i++) {
             let actualEqOp: number = operatorIndexs[i] - cuttedOpLength;
-            const leftOp: string = newExp.slice(0, actualEqOp).join("");
-            const rightOp: string = newExp.slice(actualEqOp + 1).join("");
+            let leftOp: string = newExp.slice(0, actualEqOp).join("");
+            let rightOp: string = newExp.slice(actualEqOp + 1).join("");
+            leftOp[0] === "(" && leftOp[leftOp.length - 1] === ")" ? leftOp = leftOp.slice(1, -1) : "";
+            rightOp[0] === "(" && rightOp[rightOp.length - 1] === ")" ? rightOp = rightOp.slice(1, -1) : "";
             cuttedOpLength += leftOp.length + 1;
             let actual: string = `(${leftOp})≡(${rightOp})`;
             equivalenceOps.unshift(actual);
@@ -361,8 +367,9 @@ class Expression {
         // To each operation
         for (let i = 0; i < this.operations.length; i++) {
             let [firstVar, operator, secondVar] = this.splitOp(this.operations[i]);
-            firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")" ? firstVar = firstVar.slice(1, -1) : "";
-            secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")" ? secondVar = secondVar.slice(1, -1) : "";
+            firstVar = firstVar.replaceAll("(", "").replaceAll(")", "");
+            secondVar = secondVar.replaceAll("(", "").replaceAll(")", "");
+            console.log(firstVar, secondVar);
             let actual: [string, boolean[]] = [firstVar + operator + secondVar, []];
 
             // Get values
@@ -430,6 +437,7 @@ const handleSubmit = (evt: Event) => {
 
 function run(): void {
     const expression: Expression = new Expression(expressionInput.value);
+    console.log(expression);
 
     const truthTableDiv: HTMLElement = document.getElementById("truth-table");
     const truthTableCategoryDiv: HTMLElement = document.getElementById("truth-table-category");
@@ -500,3 +508,34 @@ function run(): void {
         }, 100);
     }
 }
+
+const lightIcon: HTMLElement = document.createElement('i');
+lightIcon.className = 'fa-solid fa-xl fa-moon d-flex light-mode';
+
+const darkIcon: HTMLElement = document.createElement('i');
+darkIcon.className = 'fa-solid fa-xl fa-sun d-flex dark-mode';
+
+const lightIconTheme: string = "background:#F2994A;background:-webkit-linear-gradient(to right, #F2C94C, #F2994A);background:linear-gradient(to right, #F2C94C, #F2994A);";
+
+const darkIconTheme: string = "background:#141E30;background:-webkit-linear-gradient(to right, #243B55, #141E30);background:linear-gradient(to right, #243B55, #141E30);";
+
+
+let actualMode: string = "light";
+
+const darkModeButton = document.getElementById("darkModeButton") as HTMLButtonElement;
+darkModeButton.addEventListener('click', () => {
+    let child: HTMLElement = darkModeButton.querySelector(':first-child');
+    console.log(child.classList.value);
+    if (child.classList.value.includes("light-mode")) {
+        darkModeButton.removeChild(child);
+        darkModeButton.appendChild(darkIcon)
+        document.body.setAttribute("style", darkIconTheme);
+        actualMode = "dark";
+    } else {
+        darkModeButton.removeChild(child);
+        darkModeButton.appendChild(lightIcon);
+        document.body.setAttribute("style", lightIconTheme);
+        actualMode = "light";
+    }
+    console.log(actualMode);
+});
