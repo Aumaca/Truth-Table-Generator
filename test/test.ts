@@ -13,17 +13,17 @@ class Expression {
     public truthTable: [string, boolean[]][];
 
     constructor(defaultExp: string) {
-        this.defaultExp = defaultExp.replaceAll("!", "¬").replaceAll("=", "≡").replaceAll("<->", "≡");
+        this.defaultExp = defaultExp.replaceAll("!", "¬").replaceAll("v", "∨").replaceAll("^", "∧").replaceAll("<->", "≡").replaceAll("<=>", "≡").replaceAll("=", "≡").replaceAll("->", "⇒").replaceAll("=>", "⇒");
         this.invertedExp = this.invertExpression(this.defaultExp);
         this.letters = this.getLetters();
         this.parenthesesExp = this.getParenthesesExp();
         this.parenthesesExpOps = this.getOpsFromParenthesesExp();
-        this.andOps = this.getOps(this.invertedExp, "^");
+        this.andOps = this.getOps(this.invertedExp, "∧");
         this.newInvertedExp = this.surroundAndOps();
-        this.orOps = this.getOps(this.newInvertedExp, "v");
+        this.orOps = this.getOps(this.newInvertedExp, "∨");
         this.conditionalOps = this.getConditionalOps();
         this.equivalenceOps = this.getEquivalenceOps();
-        this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps];
+        this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps, ...this.equivalenceOps];
         this.truthTable = this.generateTruthTable();
     }
 
@@ -40,8 +40,7 @@ class Expression {
             if (defaultExp[i] === ")") {
                 openParentheses--;
             }
-            // Detects if next char is "-" indicating "->"
-            if (["¬", "<", "-"].includes(defaultExp[i])) {
+            if (["¬"].includes(defaultExp[i])) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -61,7 +60,7 @@ class Expression {
             operation[i] === "(" ? openParentheses++ : "";
             operation[i] === ")" ? openParentheses-- : "";
             actualOp += operation[i];
-            if (["¬", "<", "-"].includes(operation[i]) || openParentheses > 0) {
+            if (["¬"].includes(operation[i]) || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actualOp);
@@ -140,7 +139,7 @@ class Expression {
             }
 
             // For expressions that begins with a operator
-            if (actualOp[0].match(/[v^]/g) && actualOp[1]) {
+            if (actualOp[0].match(/[∨∧]/g) && actualOp[1]) {
                 toPush = true;
             }
 
@@ -148,7 +147,7 @@ class Expression {
             // 1 - There is a element operator 2 characters before
             // 2 - Previous character is a negation operator
             // 3 - actualOp character is a uppercase letter
-            if (exp[i - 2]?.match(/[v^]/g) && exp[i - 1] === "¬" && exp[i]?.match(/[A-Z]/g)) {
+            if (exp[i - 2]?.match(/[∨∧]/g) && exp[i - 1] === "¬" && exp[i]?.match(/[A-Z]/g)) {
                 toPush = true;
             }
 
@@ -215,7 +214,7 @@ class Expression {
         let newExp: string[] = this.defaultExp.split("");
         let conditionals: string[] = [];
         let condIndexs: number[] = [];
-        
+
         let expsToUse: string[] = [];
 
         // Get ≡ indexs if they are in exp
@@ -248,20 +247,20 @@ class Expression {
         for (let i = 0; i < newExp.length; i++) {
             newExp[i] === "(" ? openParentheses++ : "";
             newExp[i] === ")" ? openParentheses-- : "";
-            if (newExp[i] === ">" && openParentheses === 0) {
+            if (newExp[i] === "⇒" && openParentheses === 0) {
                 condIndexs.push(i);
             }
         }
 
-        // Get conditional ops from -> indexs
+        // Get conditional ops from ⇒ indexs
         // At each unshift, the newExp remove the left op.
         let cuttedOpLength: number = 0;
         for (let i = 0; i < condIndexs.length; i++) {
             let actualCondIndex: number = condIndexs[i] - cuttedOpLength;
-            const leftOp: string = newExp.slice(0, actualCondIndex - 1).join("");
+            const leftOp: string = newExp.slice(0, actualCondIndex).join("");
             const rightOp: string = newExp.slice(actualCondIndex + 1).join("");
-            cuttedOpLength += leftOp.length + 2; // +2 due the operator "->"
-            let actual: string = `(${leftOp})->(${rightOp})`;
+            cuttedOpLength += leftOp.length + 1;
+            let actual: string = `(${leftOp})⇒(${rightOp})`;
             conditionals.unshift(actual);
             newExp = newExp.slice(actualCondIndex + 1);
         }
@@ -351,11 +350,12 @@ class Expression {
 
         // To each operation
         for (let i = 0; i < this.operations.length; i++) {
-            let actual: [string, boolean[]] = [this.operations[i], []];
             let [firstVar, operator, secondVar] = this.splitOp(this.operations[i]);
             firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")" ? firstVar = firstVar.slice(1, -1) : "";
             secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")" ? secondVar = secondVar.slice(1, -1) : "";
+            let actual: [string, boolean[]] = [firstVar + operator + secondVar, []];
 
+            // Get values
             let firstVarValues: boolean[] = [];
             let secondVarValues: boolean[] = [];
             truthTable.map((array) => {
@@ -367,21 +367,31 @@ class Expression {
                 }
             });
 
-            if (operator === "v") {
+            // Generate boolean values
+            if (operator === "∨") {
                 for (let x = 0; x < cases; x++) {
                     actual[1].push(firstVarValues[x] || secondVarValues[x]);
                 }
             }
-            if (operator === "^") {
+            if (operator === "∧") {
                 for (let x = 0; x < cases; x++) {
                     let booleanValue: boolean = firstVarValues[x] && secondVarValues[x];
                     actual[1].push(booleanValue);
                 }
             }
-            if (operator === "->") {
+            if (operator === "⇒") {
                 for (let x = 0; x < cases; x++) {
                     if (firstVarValues[x] === true && secondVarValues[x] === false) {
                         actual[1].push(false);
+                    } else {
+                        actual[1].push(true);
+                    }
+                }
+            }
+            if (operator === "≡") {
+                for (let x = 0; x < cases; x++) {
+                    if ((firstVarValues[x] === true && secondVarValues[x] === true) || (firstVarValues[x] === false && secondVarValues[x] === false)) {
+                        actual[1].push(true);
                     } else {
                         actual[1].push(false);
                     }
@@ -390,9 +400,18 @@ class Expression {
             truthTable.push(actual);
         }
 
+        let index: number = 0;
+        truthTable.map((operationArray) => {
+            if (operationArray[0].length > 2) {
+                operationArray[0] = this.operations[index];
+                index++;
+            }
+        });
+
         return truthTable;
     }
 }
 
 let exp = new Expression("A^B->!B<->!A<->B");
 console.log(exp);
+console.log(exp.truthTable[exp.truthTable.length - 1]);

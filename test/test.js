@@ -1,16 +1,16 @@
 class Expression {
     constructor(defaultExp) {
-        this.defaultExp = defaultExp.replaceAll("!", "¬").replaceAll("=", "≡").replaceAll("<->", "≡");
+        this.defaultExp = defaultExp.replaceAll("!", "¬").replaceAll("v", "∨").replaceAll("^", "∧").replaceAll("<->", "≡").replaceAll("<=>", "≡").replaceAll("=", "≡").replaceAll("->", "⇒").replaceAll("=>", "⇒");
         this.invertedExp = this.invertExpression(this.defaultExp);
         this.letters = this.getLetters();
         this.parenthesesExp = this.getParenthesesExp();
         this.parenthesesExpOps = this.getOpsFromParenthesesExp();
-        this.andOps = this.getOps(this.invertedExp, "^");
+        this.andOps = this.getOps(this.invertedExp, "∧");
         this.newInvertedExp = this.surroundAndOps();
-        this.orOps = this.getOps(this.newInvertedExp, "v");
+        this.orOps = this.getOps(this.newInvertedExp, "∨");
         this.conditionalOps = this.getConditionalOps();
         this.equivalenceOps = this.getEquivalenceOps();
-        this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps];
+        this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps, ...this.equivalenceOps];
         this.truthTable = this.generateTruthTable();
     }
     invertExpression(defaultExp) {
@@ -26,7 +26,7 @@ class Expression {
             if (defaultExp[i] === ")") {
                 openParentheses--;
             }
-            if (["¬", "<", "-"].includes(defaultExp[i])) {
+            if (["¬"].includes(defaultExp[i])) {
                 continue;
             }
             if (openParentheses === 0) {
@@ -44,7 +44,7 @@ class Expression {
             operation[i] === "(" ? openParentheses++ : "";
             operation[i] === ")" ? openParentheses-- : "";
             actualOp += operation[i];
-            if (["¬", "<", "-"].includes(operation[i]) || openParentheses > 0) {
+            if (["¬"].includes(operation[i]) || openParentheses > 0) {
                 continue;
             }
             operationArray.push(actualOp);
@@ -113,10 +113,10 @@ class Expression {
             if (exp[i] === "¬" || openParentheses > 0) {
                 continue;
             }
-            if (actualOp[0].match(/[v^]/g) && actualOp[1]) {
+            if (actualOp[0].match(/[∨∧]/g) && actualOp[1]) {
                 toPush = true;
             }
-            if (((_a = exp[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[v^]/g)) && exp[i - 1] === "¬" && ((_b = exp[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
+            if (((_a = exp[i - 2]) === null || _a === void 0 ? void 0 : _a.match(/[∨∧]/g)) && exp[i - 1] === "¬" && ((_b = exp[i]) === null || _b === void 0 ? void 0 : _b.match(/[A-Z]/g))) {
                 toPush = true;
             }
             if (this.splitOp(actualOp).length === 3) {
@@ -194,17 +194,17 @@ class Expression {
         for (let i = 0; i < newExp.length; i++) {
             newExp[i] === "(" ? openParentheses++ : "";
             newExp[i] === ")" ? openParentheses-- : "";
-            if (newExp[i] === ">" && openParentheses === 0) {
+            if (newExp[i] === "⇒" && openParentheses === 0) {
                 condIndexs.push(i);
             }
         }
         let cuttedOpLength = 0;
         for (let i = 0; i < condIndexs.length; i++) {
             let actualCondIndex = condIndexs[i] - cuttedOpLength;
-            const leftOp = newExp.slice(0, actualCondIndex - 1).join("");
+            const leftOp = newExp.slice(0, actualCondIndex).join("");
             const rightOp = newExp.slice(actualCondIndex + 1).join("");
-            cuttedOpLength += leftOp.length + 2;
-            let actual = `(${leftOp})->(${rightOp})`;
+            cuttedOpLength += leftOp.length + 1;
+            let actual = `(${leftOp})⇒(${rightOp})`;
             conditionals.unshift(actual);
             newExp = newExp.slice(actualCondIndex + 1);
         }
@@ -287,10 +287,10 @@ class Expression {
         }
         ;
         for (let i = 0; i < this.operations.length; i++) {
-            let actual = [this.operations[i], []];
             let [firstVar, operator, secondVar] = this.splitOp(this.operations[i]);
             firstVar[0] === "(" && firstVar[firstVar.length - 1] === ")" ? firstVar = firstVar.slice(1, -1) : "";
             secondVar[0] === "(" && secondVar[secondVar.length - 1] === ")" ? secondVar = secondVar.slice(1, -1) : "";
+            let actual = [firstVar + operator + secondVar, []];
             let firstVarValues = [];
             let secondVarValues = [];
             truthTable.map((array) => {
@@ -301,21 +301,31 @@ class Expression {
                     secondVarValues = array[1];
                 }
             });
-            if (operator === "v") {
+            if (operator === "∨") {
                 for (let x = 0; x < cases; x++) {
                     actual[1].push(firstVarValues[x] || secondVarValues[x]);
                 }
             }
-            if (operator === "^") {
+            if (operator === "∧") {
                 for (let x = 0; x < cases; x++) {
                     let booleanValue = firstVarValues[x] && secondVarValues[x];
                     actual[1].push(booleanValue);
                 }
             }
-            if (operator === "->") {
+            if (operator === "⇒") {
                 for (let x = 0; x < cases; x++) {
                     if (firstVarValues[x] === true && secondVarValues[x] === false) {
                         actual[1].push(false);
+                    }
+                    else {
+                        actual[1].push(true);
+                    }
+                }
+            }
+            if (operator === "≡") {
+                for (let x = 0; x < cases; x++) {
+                    if ((firstVarValues[x] === true && secondVarValues[x] === true) || (firstVarValues[x] === false && secondVarValues[x] === false)) {
+                        actual[1].push(true);
                     }
                     else {
                         actual[1].push(false);
@@ -324,9 +334,17 @@ class Expression {
             }
             truthTable.push(actual);
         }
+        let index = 0;
+        truthTable.map((operationArray) => {
+            if (operationArray[0].length > 2) {
+                operationArray[0] = this.operations[index];
+                index++;
+            }
+        });
         return truthTable;
     }
 }
 let exp = new Expression("A^B->!B<->!A<->B");
 console.log(exp);
+console.log(exp.truthTable[exp.truthTable.length - 1]);
 //# sourceMappingURL=test.js.map
