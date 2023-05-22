@@ -1,6 +1,7 @@
 class Expression {
     public defaultExp: string;
     public invertedExp: string;
+    public isValidExp: boolean;
     public letters: string[];
     public newInvertedExp: string;
     public parenthesesExp: string[];
@@ -14,8 +15,21 @@ class Expression {
     public truthTable: [string, boolean[]][];
 
     constructor(defaultExp: string) {
-        this.defaultExp = defaultExp.replaceAll(" ", "").replaceAll("!", "¬").replaceAll("v", "∨").replaceAll("^", "∧").replaceAll("<->", "≡").replaceAll("<=>", "≡").replaceAll("=", "≡").replaceAll("->", "⇒").replaceAll("=>", "⇒");
+        this.defaultExp = defaultExp
+            .replaceAll(" ", "")
+            .replaceAll("!", "¬")
+            .replaceAll("v", "∨")
+            .replaceAll("|", "∨")
+            .replaceAll("^", "∧")
+            .replaceAll("&", "∧")
+            .replaceAll("<->", "≡")
+            .replaceAll("<=>", "≡")
+            .replaceAll("=", "≡")
+            .replaceAll("->", "⇒")
+            .replaceAll("=>", "⇒")
+            .replaceAll(/[A-Z]/g, (match) => match.toUpperCase());
         this.invertedExp = this.invertExpression(this.defaultExp);
+        this.isValidExp = this.checkExpression();
         this.letters = this.getLetters();
         this.parenthesesExp = this.getParenthesesExp();
         this.parenthesesExpOps = this.getOpsFromParenthesesExp();
@@ -27,6 +41,43 @@ class Expression {
         this.cases = this.getCases();
         this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps, ...this.equivalenceOps];
         this.truthTable = this.generateTruthTable();
+    }
+
+    private checkExpression(): boolean {
+        if (this.defaultExp.match(/[∧∨⇒≡][∧∨⇒≡]/g)) {
+            return false;
+        }
+
+        if (this.defaultExp.match(/[A-Z][A-Z]/g)) {
+            return false;
+        }
+
+        if (this.defaultExp.match(/[A-Z][¬]/g)) {
+            return false;
+        }
+
+        if (!this.defaultExp.match(/[A-Z]/g)) {
+            return false;
+        }
+
+        if (this.defaultExp.match(/[^A-Z∧∨⇒≡¬()]/g)) {
+            return false;
+        }
+
+        if (this.defaultExp[0].match(/[∧∨⇒≡]/g) || this.defaultExp[this.defaultExp.length - 1].match(/[∧∨⇒≡]/g)) {
+            return false;
+        }
+
+        let openParentheses: number = 0;
+        this.defaultExp.split("").map((char) => {
+            char === "(" ? openParentheses++ : "";
+            char === ")" ? openParentheses-- : "";
+        });
+        if (openParentheses !== 0) {
+            return false;
+        };
+
+        return true;
     }
 
     private getCases(): number {
@@ -100,7 +151,7 @@ class Expression {
     private getParenthesesExp(): string[] {
         let openParenthesesIndexs: number[] = [];
         this.defaultExp.split("").map((x, i) => {
-            x === "(" ? openParenthesesIndexs.unshift(i) : "";
+            x === "(" ? openParenthesesIndexs.push(i) : "";
         });
 
         let parenthesesExp: string[] = [];
@@ -137,12 +188,9 @@ class Expression {
         let openParentheses: number = 0;
         let toPush: boolean = false;
         let pushed: boolean = false;
-                                              
-        console.log("actual operator: " + operator);
 
         for (let i = 0; i < exp.length; i++) {
             actualOp += exp[i];
-            console.log(actualOp);
             exp[i] === "(" ? openParentheses++ : '';
             exp[i] === ")" ? openParentheses-- : '';
 
@@ -369,7 +417,6 @@ class Expression {
             let [firstVar, operator, secondVar] = this.splitOp(this.operations[i]);
             firstVar = firstVar.replaceAll("(", "").replaceAll(")", "");
             secondVar = secondVar.replaceAll("(", "").replaceAll(")", "");
-            console.log(firstVar, secondVar);
             let actual: [string, boolean[]] = [firstVar + operator + secondVar, []];
 
             // Get values
@@ -438,74 +485,78 @@ const handleSubmit = (evt: Event) => {
 function run(): void {
     const expression: Expression = new Expression(expressionInput.value);
     console.log(expression);
+    if (expression.isValidExp) {
 
-    const truthTableDiv: HTMLElement = document.getElementById("truth-table");
-    const truthTableCategoryDiv: HTMLElement = document.getElementById("truth-table-category");
-
-    if (truthTableDiv) {
-        truthTableDiv.children ? truthTableDiv.textContent = "" : "";
-        truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
-        const table: HTMLTableElement = document.createElement("table");
-        table.id = "the-table";
-        table.style.opacity = '0';
-
-        // Table's header
-        const tableHeaderElement: HTMLTableSectionElement = document.createElement("thead");
-        const headerRow: HTMLTableRowElement = document.createElement("tr");
-        for (let operationArray of expression.truthTable) {
-            const labelHeader: HTMLTableCellElement = document.createElement("th");
-            labelHeader.textContent = operationArray[0]; // Variable
-            headerRow.appendChild(labelHeader);
-        }
-        tableHeaderElement.appendChild(headerRow);
-        table.appendChild(tableHeaderElement);
-
-        const tableBodyElement: HTMLTableSectionElement = document.createElement("tbody");
-        // Table's boolean values from expressions
-        const cases: number = 2 ** expression.cases;
-        // Create a row for body for each case
-        for (let i = 0; i < cases; i++) {
-            const bodyRow: HTMLTableRowElement = document.createElement("tr");
-            // For each variable in truth table
-            for (let x of expression.truthTable) {
-                const actualBooleanCell: HTMLTableCellElement = document.createElement("td");
-                // Convert boolean value to string and then take only the first letter to uppercase
-                actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
-                if (x[1][i]) {
-                    actualBooleanCell.className = "true";
-                } else {
-                    actualBooleanCell.className = "false";
+        const truthTableDiv: HTMLElement = document.getElementById("truth-table");
+        const truthTableCategoryDiv: HTMLElement = document.getElementById("truth-table-category");
+    
+        if (truthTableDiv) {
+            truthTableDiv.children ? truthTableDiv.textContent = "" : "";
+            truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
+            const table: HTMLTableElement = document.createElement("table");
+            table.id = "the-table";
+            table.style.opacity = '0';
+    
+            // Table's header
+            const tableHeaderElement: HTMLTableSectionElement = document.createElement("thead");
+            const headerRow: HTMLTableRowElement = document.createElement("tr");
+            for (let operationArray of expression.truthTable) {
+                const labelHeader: HTMLTableCellElement = document.createElement("th");
+                labelHeader.textContent = operationArray[0]; // Variable
+                headerRow.appendChild(labelHeader);
+            }
+            tableHeaderElement.appendChild(headerRow);
+            table.appendChild(tableHeaderElement);
+    
+            const tableBodyElement: HTMLTableSectionElement = document.createElement("tbody");
+            // Table's boolean values from expressions
+            const cases: number = 2 ** expression.cases;
+            // Create a row for body for each case
+            for (let i = 0; i < cases; i++) {
+                const bodyRow: HTMLTableRowElement = document.createElement("tr");
+                // For each variable in truth table
+                for (let x of expression.truthTable) {
+                    const actualBooleanCell: HTMLTableCellElement = document.createElement("td");
+                    // Convert boolean value to string and then take only the first letter to uppercase
+                    actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
+                    if (x[1][i]) {
+                        actualBooleanCell.className = "true";
+                    } else {
+                        actualBooleanCell.className = "false";
+                    }
+                    bodyRow.appendChild(actualBooleanCell);
                 }
-                bodyRow.appendChild(actualBooleanCell);
+                tableBodyElement.appendChild(bodyRow);
             }
-            tableBodyElement.appendChild(bodyRow);
-        }
-        table.appendChild(tableBodyElement);
-        truthTableDiv.appendChild(table);
-
-        // To display if expression results in a Tautology or Contradiction
-        const paragraph: HTMLParagraphElement = document.createElement("h4");
-        const lastColumnBooleanValues: boolean[] = expression.truthTable[expression.truthTable.length - 1][1];
-        if (lastColumnBooleanValues.every((bool) => bool === true)) {
-            paragraph.textContent = "Tautology";
-            paragraph.className = "tautology";
-        } else {
-            if (lastColumnBooleanValues.every((bool) => bool === false)) {
-                paragraph.textContent = "Contradiction";
-                paragraph.className = "contradiction";
+            table.appendChild(tableBodyElement);
+            truthTableDiv.appendChild(table);
+    
+            // To display if expression results in a Tautology or Contradiction
+            const paragraph: HTMLParagraphElement = document.createElement("h4");
+            const lastColumnBooleanValues: boolean[] = expression.truthTable[expression.truthTable.length - 1][1];
+            if (lastColumnBooleanValues.every((bool) => bool === true)) {
+                paragraph.textContent = "Tautology";
+                paragraph.className = "tautology";
             } else {
-                paragraph.textContent = "Contingency";
-                paragraph.className = "contingency";
+                if (lastColumnBooleanValues.every((bool) => bool === false)) {
+                    paragraph.textContent = "Contradiction";
+                    paragraph.className = "contradiction";
+                } else {
+                    paragraph.textContent = "Contingency";
+                    paragraph.className = "contingency";
+                }
             }
+    
+    
+            truthTableCategoryDiv.appendChild(paragraph);
+    
+            setTimeout(() => {
+                table.style.opacity = "1";
+                truthTableCategoryDiv.style.opacity = "1";
+            }, 100);
         }
-
-
-        truthTableCategoryDiv.appendChild(paragraph);
-
-        setTimeout(() => {
-            table.style.opacity = "1";
-            truthTableCategoryDiv.style.opacity = "1";
-        }, 100);
+    } else {
+        alert("Expression is invalid.");
     }
 }
 
@@ -525,10 +576,9 @@ let actualMode: string = "light";
 const darkModeButton = document.getElementById("darkModeButton") as HTMLButtonElement;
 darkModeButton.addEventListener('click', () => {
     let child: HTMLElement = darkModeButton.querySelector(':first-child');
-    console.log(child.classList.value);
     if (child.classList.value.includes("light-mode")) {
         darkModeButton.removeChild(child);
-        darkModeButton.appendChild(darkIcon)
+        darkModeButton.appendChild(darkIcon);
         document.body.setAttribute("style", darkIconTheme);
         actualMode = "dark";
     } else {
@@ -537,5 +587,4 @@ darkModeButton.addEventListener('click', () => {
         document.body.setAttribute("style", lightIconTheme);
         actualMode = "light";
     }
-    console.log(actualMode);
 });

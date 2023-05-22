@@ -1,7 +1,20 @@
 class Expression {
     constructor(defaultExp) {
-        this.defaultExp = defaultExp.replaceAll(" ", "").replaceAll("!", "¬").replaceAll("v", "∨").replaceAll("^", "∧").replaceAll("<->", "≡").replaceAll("<=>", "≡").replaceAll("=", "≡").replaceAll("->", "⇒").replaceAll("=>", "⇒");
+        this.defaultExp = defaultExp
+            .replaceAll(" ", "")
+            .replaceAll("!", "¬")
+            .replaceAll("v", "∨")
+            .replaceAll("|", "∨")
+            .replaceAll("^", "∧")
+            .replaceAll("&", "∧")
+            .replaceAll("<->", "≡")
+            .replaceAll("<=>", "≡")
+            .replaceAll("=", "≡")
+            .replaceAll("->", "⇒")
+            .replaceAll("=>", "⇒")
+            .replaceAll(/[A-Z]/g, (match) => match.toUpperCase());
         this.invertedExp = this.invertExpression(this.defaultExp);
+        this.isValidExp = this.checkExpression();
         this.letters = this.getLetters();
         this.parenthesesExp = this.getParenthesesExp();
         this.parenthesesExpOps = this.getOpsFromParenthesesExp();
@@ -13,6 +26,36 @@ class Expression {
         this.cases = this.getCases();
         this.operations = [...this.parenthesesExpOps, ...this.andOps, ...this.orOps, ...this.conditionalOps, ...this.equivalenceOps];
         this.truthTable = this.generateTruthTable();
+    }
+    checkExpression() {
+        if (this.defaultExp.match(/[∧∨⇒≡][∧∨⇒≡]/g)) {
+            return false;
+        }
+        if (this.defaultExp.match(/[A-Z][A-Z]/g)) {
+            return false;
+        }
+        if (this.defaultExp.match(/[A-Z][¬]/g)) {
+            return false;
+        }
+        if (!this.defaultExp.match(/[A-Z]/g)) {
+            return false;
+        }
+        if (this.defaultExp.match(/[^A-Z∧∨⇒≡¬()]/g)) {
+            return false;
+        }
+        if (this.defaultExp[0].match(/[∧∨⇒≡]/g) || this.defaultExp[this.defaultExp.length - 1].match(/[∧∨⇒≡]/g)) {
+            return false;
+        }
+        let openParentheses = 0;
+        this.defaultExp.split("").map((char) => {
+            char === "(" ? openParentheses++ : "";
+            char === ")" ? openParentheses-- : "";
+        });
+        if (openParentheses !== 0) {
+            return false;
+        }
+        ;
+        return true;
     }
     getCases() {
         let onlyLetters = 0;
@@ -80,7 +123,7 @@ class Expression {
     getParenthesesExp() {
         let openParenthesesIndexs = [];
         this.defaultExp.split("").map((x, i) => {
-            x === "(" ? openParenthesesIndexs.unshift(i) : "";
+            x === "(" ? openParenthesesIndexs.push(i) : "";
         });
         let parenthesesExp = [];
         openParenthesesIndexs.map((index) => {
@@ -114,10 +157,8 @@ class Expression {
         let openParentheses = 0;
         let toPush = false;
         let pushed = false;
-        console.log("actual operator: " + operator);
         for (let i = 0; i < exp.length; i++) {
             actualOp += exp[i];
-            console.log(actualOp);
             exp[i] === "(" ? openParentheses++ : '';
             exp[i] === ")" ? openParentheses-- : '';
             if (exp[i] === "¬" || openParentheses > 0) {
@@ -304,7 +345,6 @@ class Expression {
             let [firstVar, operator, secondVar] = this.splitOp(this.operations[i]);
             firstVar = firstVar.replaceAll("(", "").replaceAll(")", "");
             secondVar = secondVar.replaceAll("(", "").replaceAll(")", "");
-            console.log(firstVar, secondVar);
             let actual = [firstVar + operator + secondVar, []];
             let firstVarValues = [];
             let secondVarValues = [];
@@ -367,63 +407,68 @@ const handleSubmit = (evt) => {
 function run() {
     const expression = new Expression(expressionInput.value);
     console.log(expression);
-    const truthTableDiv = document.getElementById("truth-table");
-    const truthTableCategoryDiv = document.getElementById("truth-table-category");
-    if (truthTableDiv) {
-        truthTableDiv.children ? truthTableDiv.textContent = "" : "";
-        truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
-        const table = document.createElement("table");
-        table.id = "the-table";
-        table.style.opacity = '0';
-        const tableHeaderElement = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        for (let operationArray of expression.truthTable) {
-            const labelHeader = document.createElement("th");
-            labelHeader.textContent = operationArray[0];
-            headerRow.appendChild(labelHeader);
-        }
-        tableHeaderElement.appendChild(headerRow);
-        table.appendChild(tableHeaderElement);
-        const tableBodyElement = document.createElement("tbody");
-        const cases = Math.pow(2, expression.cases);
-        for (let i = 0; i < cases; i++) {
-            const bodyRow = document.createElement("tr");
-            for (let x of expression.truthTable) {
-                const actualBooleanCell = document.createElement("td");
-                actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
-                if (x[1][i]) {
-                    actualBooleanCell.className = "true";
-                }
-                else {
-                    actualBooleanCell.className = "false";
-                }
-                bodyRow.appendChild(actualBooleanCell);
+    if (expression.isValidExp) {
+        const truthTableDiv = document.getElementById("truth-table");
+        const truthTableCategoryDiv = document.getElementById("truth-table-category");
+        if (truthTableDiv) {
+            truthTableDiv.children ? truthTableDiv.textContent = "" : "";
+            truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
+            const table = document.createElement("table");
+            table.id = "the-table";
+            table.style.opacity = '0';
+            const tableHeaderElement = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+            for (let operationArray of expression.truthTable) {
+                const labelHeader = document.createElement("th");
+                labelHeader.textContent = operationArray[0];
+                headerRow.appendChild(labelHeader);
             }
-            tableBodyElement.appendChild(bodyRow);
-        }
-        table.appendChild(tableBodyElement);
-        truthTableDiv.appendChild(table);
-        const paragraph = document.createElement("h4");
-        const lastColumnBooleanValues = expression.truthTable[expression.truthTable.length - 1][1];
-        if (lastColumnBooleanValues.every((bool) => bool === true)) {
-            paragraph.textContent = "Tautology";
-            paragraph.className = "tautology";
-        }
-        else {
-            if (lastColumnBooleanValues.every((bool) => bool === false)) {
-                paragraph.textContent = "Contradiction";
-                paragraph.className = "contradiction";
+            tableHeaderElement.appendChild(headerRow);
+            table.appendChild(tableHeaderElement);
+            const tableBodyElement = document.createElement("tbody");
+            const cases = Math.pow(2, expression.cases);
+            for (let i = 0; i < cases; i++) {
+                const bodyRow = document.createElement("tr");
+                for (let x of expression.truthTable) {
+                    const actualBooleanCell = document.createElement("td");
+                    actualBooleanCell.textContent = (new Boolean(x[1][i]).toString()[0]).toUpperCase();
+                    if (x[1][i]) {
+                        actualBooleanCell.className = "true";
+                    }
+                    else {
+                        actualBooleanCell.className = "false";
+                    }
+                    bodyRow.appendChild(actualBooleanCell);
+                }
+                tableBodyElement.appendChild(bodyRow);
+            }
+            table.appendChild(tableBodyElement);
+            truthTableDiv.appendChild(table);
+            const paragraph = document.createElement("h4");
+            const lastColumnBooleanValues = expression.truthTable[expression.truthTable.length - 1][1];
+            if (lastColumnBooleanValues.every((bool) => bool === true)) {
+                paragraph.textContent = "Tautology";
+                paragraph.className = "tautology";
             }
             else {
-                paragraph.textContent = "Contingency";
-                paragraph.className = "contingency";
+                if (lastColumnBooleanValues.every((bool) => bool === false)) {
+                    paragraph.textContent = "Contradiction";
+                    paragraph.className = "contradiction";
+                }
+                else {
+                    paragraph.textContent = "Contingency";
+                    paragraph.className = "contingency";
+                }
             }
+            truthTableCategoryDiv.appendChild(paragraph);
+            setTimeout(() => {
+                table.style.opacity = "1";
+                truthTableCategoryDiv.style.opacity = "1";
+            }, 100);
         }
-        truthTableCategoryDiv.appendChild(paragraph);
-        setTimeout(() => {
-            table.style.opacity = "1";
-            truthTableCategoryDiv.style.opacity = "1";
-        }, 100);
+    }
+    else {
+        alert("Expression is invalid.");
     }
 }
 const lightIcon = document.createElement('i');
@@ -436,7 +481,6 @@ let actualMode = "light";
 const darkModeButton = document.getElementById("darkModeButton");
 darkModeButton.addEventListener('click', () => {
     let child = darkModeButton.querySelector(':first-child');
-    console.log(child.classList.value);
     if (child.classList.value.includes("light-mode")) {
         darkModeButton.removeChild(child);
         darkModeButton.appendChild(darkIcon);
@@ -449,6 +493,5 @@ darkModeButton.addEventListener('click', () => {
         document.body.setAttribute("style", lightIconTheme);
         actualMode = "light";
     }
-    console.log(actualMode);
 });
 //# sourceMappingURL=script.js.map
