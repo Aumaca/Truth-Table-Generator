@@ -18,7 +18,7 @@
     <button class="dark-mode-container position-absolute top-0 end-0 p-4 m-3" id="darkModeButton">
         <i class="fa-solid fa-xl fa-moon d-flex light-mode"></i>
     </button>
-    <div class="container col-md-8 d-flex flex-column gap-4 mt-4 p-5">
+    <div class="container col-md-8 col-lg-8 col-xl-6 col-xxl-5 d-flex flex-column gap-4 mt-4 p-5">
 
         <!-- Title -->
         <h1 class="title text-center">Truth Table Generator</h1>
@@ -52,13 +52,15 @@
                 <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
                     data-bs-parent="#accordionExample">
                     <div class="accordion-body">
-                        <p>Write that way: <strong>!A -> B</strong></p>
                         <h5>Possible operations:</h5>
                         <ul>
-                            <li>OR - <strong>v</strong>, <strong>|</strong></li>
-                            <li>AND - <strong>^</strong>, <strong>&</strong></li>
                             <li>NEGATION - <strong>!</strong>, <strong>¬</strong></li>
+                            <li>AND - <strong>^</strong>, <strong>&</strong></li>
+                            <li>OR - <strong>v</strong>, <strong>|</strong></li>
+                            <li>CONDITIONAL - <strong>-></strong>, <strong>=></strong></li>
+                            <li class="text-nowrap">BICONDITIONAL/EQUIVALENCE - <strong><-></strong>, <strong><=></strong>, <strong>=</strong></li>
                         </ul>
+                        <p>Example: <strong>A ^ B v C -> A v (A <-> B)</strong></p>
                     </div>
                 </div>
             </div>
