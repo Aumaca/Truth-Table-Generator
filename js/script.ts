@@ -24,9 +24,9 @@ class Expression {
             .replaceAll("&", "∧")
             .replaceAll("<->", "≡")
             .replaceAll("<=>", "≡")
-            .replaceAll("=", "≡")
             .replaceAll("->", "⇒")
             .replaceAll("=>", "⇒")
+            .replaceAll("=", "≡")
             .replaceAll(/[A-Z]/g, (match) => match.toUpperCase());
         this.invertedExp = this.invertExpression(this.defaultExp);
         this.isValidExp = this.checkExpression();
@@ -485,10 +485,13 @@ const handleSubmit = (evt: Event) => {
 function run(): void {
     const expression: Expression = new Expression(expressionInput.value);
     console.log(expression);
+
+    const truthTableDiv: HTMLElement = document.getElementById("truth-table");
+    const truthTableCategoryDiv: HTMLElement = document.getElementById("truth-table-category");
+    truthTableCategoryDiv.className = "truth-table-category";
+
     if (expression.isValidExp) {
 
-        const truthTableDiv: HTMLElement = document.getElementById("truth-table");
-        const truthTableCategoryDiv: HTMLElement = document.getElementById("truth-table-category");
     
         if (truthTableDiv) {
             truthTableDiv.children ? truthTableDiv.textContent = "" : "";
@@ -556,7 +559,12 @@ function run(): void {
             }, 100);
         }
     } else {
-        alert("Expression is invalid.");
+        if (truthTableDiv) {
+            truthTableDiv.children ? truthTableDiv.textContent = "" : "";
+            truthTableCategoryDiv.style.opacity = "1";
+            truthTableCategoryDiv.textContent = "Invalid logic expression.";
+            truthTableCategoryDiv.className = "error p-3 rounded text-center border-white shadow";
+        }
     }
 }
 
