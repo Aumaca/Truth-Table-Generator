@@ -492,14 +492,14 @@ function run(): void {
 
     if (expression.isValidExp) {
 
-    
+
         if (truthTableDiv) {
             truthTableDiv.children ? truthTableDiv.textContent = "" : "";
             truthTableCategoryDiv.children ? truthTableCategoryDiv.textContent = "" : "";
             const table: HTMLTableElement = document.createElement("table");
             table.id = "the-table";
             table.style.opacity = '0';
-    
+
             // Table's header
             const tableHeaderElement: HTMLTableSectionElement = document.createElement("thead");
             const headerRow: HTMLTableRowElement = document.createElement("tr");
@@ -510,7 +510,7 @@ function run(): void {
             }
             tableHeaderElement.appendChild(headerRow);
             table.appendChild(tableHeaderElement);
-    
+
             const tableBodyElement: HTMLTableSectionElement = document.createElement("tbody");
             // Table's boolean values from expressions
             const cases: number = 2 ** expression.cases;
@@ -533,7 +533,7 @@ function run(): void {
             }
             table.appendChild(tableBodyElement);
             truthTableDiv.appendChild(table);
-    
+
             // To display if expression results in a Tautology or Contradiction
             const paragraph: HTMLParagraphElement = document.createElement("h4");
             const lastColumnBooleanValues: boolean[] = expression.truthTable[expression.truthTable.length - 1][1];
@@ -549,10 +549,10 @@ function run(): void {
                     paragraph.className = "contingency";
                 }
             }
-    
-    
+
+
             truthTableCategoryDiv.appendChild(paragraph);
-    
+
             setTimeout(() => {
                 table.style.opacity = "1";
                 truthTableCategoryDiv.style.opacity = "1";
@@ -576,7 +576,7 @@ darkIcon.className = 'fa-solid fa-xl fa-sun d-flex dark-mode';
 
 const lightIconTheme: string = "background:#F2994A;background:-webkit-linear-gradient(to right, #F2C94C, #F2994A);background:linear-gradient(to right, #F2C94C, #F2994A);";
 
-const darkIconTheme: string = "background:#141E30;background:-webkit-linear-gradient(to right, #243B55, #141E30);background:linear-gradient(to right, #243B55, #141E30);";
+const darkIconTheme: string = "background:#181818;";
 
 
 let actualMode: string = "light";
