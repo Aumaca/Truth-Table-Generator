@@ -47,24 +47,17 @@ class Expression {
         if (this.defaultExp.match(/[∧∨⇒≡][∧∨⇒≡]/g)) {
             return false;
         }
-
-        if (this.defaultExp.match(/[A-Z][A-Z]/g)) {
+        else if (this.defaultExp.match(/[A-Z][A-Z]/g)) {
             return false;
         }
-
-        if (this.defaultExp.match(/[A-Z][¬]/g)) {
+        else if (this.defaultExp.match(/[A-Z][¬]/g)) {
             return false;
         }
-
-        if (!this.defaultExp.match(/[A-Z]/g)) {
+        else if (!this.defaultExp.match(/[A-Z]/g)) {
             return false;
-        }
-
-        if (this.defaultExp.match(/[^A-Z∧∨⇒≡¬()]/g)) {
+        } else if (this.defaultExp.match(/[^A-Z∧∨⇒≡¬()]/g)) {
             return false;
-        }
-
-        if (this.defaultExp[0].match(/[∧∨⇒≡]/g) || this.defaultExp[this.defaultExp.length - 1].match(/[∧∨⇒≡]/g)) {
+        } else if (this.defaultExp[0].match(/[∧∨⇒≡]/g) || this.defaultExp[this.defaultExp.length - 1].match(/[∧∨⇒≡]/g)) {
             return false;
         }
 
@@ -98,7 +91,7 @@ class Expression {
                 openParentheses++;
                 continue;
             }
-            if (defaultExp[i] === ")") {
+            else if (defaultExp[i] === ")") {
                 openParentheses--;
             }
             if (["¬"].includes(defaultExp[i])) {
@@ -437,13 +430,13 @@ class Expression {
                     actual[1].push(firstVarValues[x] || secondVarValues[x]);
                 }
             }
-            if (operator === "∧") {
+            else if (operator === "∧") {
                 for (let x = 0; x < cases; x++) {
                     let booleanValue: boolean = firstVarValues[x] && secondVarValues[x];
                     actual[1].push(booleanValue);
                 }
             }
-            if (operator === "⇒") {
+            else if (operator === "⇒") {
                 for (let x = 0; x < cases; x++) {
                     if (firstVarValues[x] === true && secondVarValues[x] === false) {
                         actual[1].push(false);
@@ -452,7 +445,7 @@ class Expression {
                     }
                 }
             }
-            if (operator === "≡") {
+            else if (operator === "≡") {
                 for (let x = 0; x < cases; x++) {
                     if ((firstVarValues[x] === true && secondVarValues[x] === true) || (firstVarValues[x] === false && secondVarValues[x] === false)) {
                         actual[1].push(true);
