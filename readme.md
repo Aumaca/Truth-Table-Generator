@@ -3,11 +3,9 @@
 <br>
 <p> - In my classes of Discrete Mathematics we are learning about logic and consequently, Truth Table.</p>
 <p> - Then a colleague suggested the use of a Truth Table Generator from web, and I have been thinking that this would be a good challenge to try: create my own Truth Table Generator.</p>
-<p> -  The code isn't done yet, so I will work daily on this until done. This algorithm has been a great challenge, and probably will not be 100% perfect as could be, but when possible I will make enhancements</p>
-<p> -  I'm planning to first implement all operations (->, <->, =, v, ^, !) and after reduce the amount of code in smart ways.</p>
-<br>
-<h2>For now...</h2>
-<p> - The code is able to build truth tables performing AND, OR and CONDITIONAL operations.</p>
+<p> - This was my first really good project, as I put a lot of effort into solving a problem with logic and creativity. It lacks some minor functionalities but is working normally.</p>
+<h2>About the project </h2>
+<p> - The code is able to build truth tables performing AND, OR and CONDITIONAL, NEGATION operations. (some other too maybe, I don't remember, I'm updating this after 9 months!!)</p>
 <p> - The truth table begins from right to left to take the operations.</p>
 <p> - Returns if the proposition is a Tautology, Contigency or Contradiction.</p>
 <p> - The code is being designed for OOP. I think it's getting more organized and easier to deal with.</p>
